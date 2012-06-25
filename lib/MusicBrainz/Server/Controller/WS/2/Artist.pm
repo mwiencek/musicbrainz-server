@@ -3,6 +3,7 @@ use Moose;
 BEGIN { extends 'MusicBrainz::Server::ControllerBase::WS::2' }
 
 use aliased 'MusicBrainz::Server::WebService::WebServiceStash';
+use List::AllUtils qw( uniq );
 use Readonly;
 
 my $ws_defs = Data::OptList::mkopt([
@@ -66,10 +67,15 @@ sub artist_toplevel
     $c->model('Country')->load($artist);
     $c->model('Artist')->ipi->load_for($artist);
 
+    my @dependencies = (join(':', 'artist', $artist->id));
+
     if ($c->stash->{inc}->recordings)
     {
         my @results = $c->model('Recording')->find_by_artist($artist->id, $MAX_ITEMS);
         $opts->{recordings} = $self->make_list (@results);
+
+        my ($hits) = @results;
+        push @dependencies, map { join(':', 'recording', $_->id) } @$hits;
 
         $self->linked_recordings ($c, $stash, $opts->{recordings}->{items});
     }
@@ -115,6 +121,10 @@ sub artist_toplevel
         my $types = $c->stash->{inc}->get_rel_types();
         my @rels = $c->model('Relationship')->load_subset($types, $artist);
     }
+
+    $c->response->header(
+        'dependencies' => join(' ', sort uniq @dependencies)
+    );
 }
 
 sub artist_browse : Private
