@@ -77,7 +77,7 @@
     # We always want search != 1 when calling the paginator from this template %]
         <form action="[% c.uri_for('/edit/enter_votes') %]" method="post">
             [%~ FOREACH edit=edits ~%]
-                <div class="edit-list">
+                <div class="edit-list" id="edit-id-[% edit.id %]">
                     [%~ INCLUDE 'edit/edit_header.tt' summary=1 -%]
 
                     <input type="hidden" value="[% edit.id %]" name="enter-vote.vote.[% loop.index %].edit_id" />

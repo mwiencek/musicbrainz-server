@@ -6,14 +6,17 @@ BEGIN { extends 'MusicBrainz::Server::Controller' }
 
 use Data::Page;
 use DBDefs;
+use JSON qw( encode_json );
 use MusicBrainz::Server::EditRegistry;
 use MusicBrainz::Server::Edit::Utils qw( status_names );
 use MusicBrainz::Server::Constants qw( $STATUS_OPEN :quality $REQUIRED_VOTES $OPEN_EDIT_DURATION );
 use MusicBrainz::Server::Validation qw( is_positive_integer );
 use MusicBrainz::Server::EditSearch::Query;
 use MusicBrainz::Server::Data::Utils qw( type_to_model load_everything_for_edits );
-use MusicBrainz::Server::Translation qw( N_l );
+use MusicBrainz::Server::Translation qw( l N_l );
+use List::AllUtils qw( any );
 use List::UtilsBy qw( sort_by );
+use Text::Trim qw( trim );
 
 use aliased 'MusicBrainz::Server::EditRegistry';
 
@@ -99,39 +102,49 @@ sub enter_votes : Local RequireAuth DenyWhenReadonly
     $c->detach;
 }
 
-sub approve : Chained('load') RequireAuth(auto_editor) DenyWhenReadonly
-{
+sub approve : Chained('load') RequireAuth(auto_editor) DenyWhenReadonly {
     my ($self, $c) = @_;
+
+    my $body = $c->forward('/ws/js/get_json_request_body');
+    my $response;
 
     $c->model('MB')->with_transaction(sub {
         my $edit = $c->model('Edit')->get_by_id_and_lock($c->stash->{edit}->id);
         $c->model('Vote')->load_for_edits($edit);
 
-        if (!$edit->editor_may_approve($c->user)) {
-            $c->stash( template => 'edit/cannot_approve.tt' );
-            return;
-        }
-        else {
-            if ($edit->approval_requires_comment($c->user)) {
-                $c->model('EditNote')->load_for_edits($edit);
-                my $left_note;
-                for my $note (@{ $edit->edit_notes }) {
-                    next if $note->editor_id != $c->user->id;
-                    $left_note = 1;
-                    last;
-                }
-
-                unless ($left_note) {
-                    $c->stash( template => 'edit/require_note.tt' );
-                    return;
-                };
-            }
-
-            $c->model('Edit')->approve($edit, $c->user);
-            $c->response->redirect(
-                $c->req->query_params->{returnto} || $c->uri_for_action('/edit/show', [ $edit->id ]));
-        }
+        $response = $self->_approve_edit($c, $edit, trim($body->{note} // ''));
     });
+
+    $c->res->content_type('application/json; charset=utf-8');
+    $c->res->body(encode_json($response));
+}
+
+sub _approve_edit {
+    my ($self, $c, $edit, $edit_note) = @_;
+
+    my $user = $c->user;
+    my $error;
+
+    if (!$edit->is_open) {
+        $error = l('The edit has already been closed.');
+
+    } elsif (!$edit->editor_may_approve($user)) {
+        $error = l('Edits of this type cannot be approved.');
+
+    } elsif (!$edit_note && $edit->approval_requires_comment($user) &&
+             !any {$_->editor_id == $user->id} @{$edit->edit_notes}) {
+        $error = l('{edit_url|Edit #{edit_id}} has received one or more “no” votes. ' .
+                   'You must leave an edit note before you can approve it.',
+                   {edit_url => $c->uri_for_action('/edit/show', [$edit->id]), edit_id => $edit->id});
+    }
+
+    if ($error) {
+        $c->res->status(400);
+        return {error => $error};
+    }
+
+    $c->model('Edit')->approve($edit, $user, edit_note => $edit_note);
+    return {message => 'OK'};
 }
 
 sub cancel : Chained('load') RequireAuth DenyWhenReadonly

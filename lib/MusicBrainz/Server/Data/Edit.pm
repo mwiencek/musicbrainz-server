@@ -26,6 +26,7 @@ use MusicBrainz::Server::Constants qw(
     entities_with );
 use MusicBrainz::Server::Data::Utils qw( placeholders query_to_list query_to_list_limited );
 use JSON::Any;
+use Text::Trim qw( trim );
 
 use aliased 'MusicBrainz::Server::Entity::Subscription::Active' => 'ActiveSubscription';
 use aliased 'MusicBrainz::Server::Entity::CollectionSubscription';
@@ -654,9 +655,8 @@ sub default_includes {
 }
 
 # Must be called in a transaction
-sub approve
-{
-    my ($self, $edit, $editor) = @_;
+sub approve {
+    my ($self, $edit, $editor, %opts) = @_;
 
     $self->c->model('Vote')->enter_votes(
         $editor,
@@ -665,6 +665,10 @@ sub approve
             edit_id => $edit->id
         }
     );
+
+    if (my $edit_note = trim($opts{edit_note} // '')) {
+        $self->c->model('EditNote')->add_note($edit->id, {editor_id => $editor->id, text => $edit_note});
+    }
 
     # Apply the changes and close the edit
     $self->accept($edit);

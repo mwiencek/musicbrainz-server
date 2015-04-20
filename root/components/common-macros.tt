@@ -1024,7 +1024,7 @@ END -%]
       [% END %]
 
       [% IF edit.editor_may_approve(c.user) %]
-        <a class="positive" href="[% c.uri_for_action('/edit/approve', [ edit.id ], { returnto=c.req.uri }) %]">[% l('Approve edit') %]</a>
+        <a class="positive approve-button" href="#" data-edit-id="[% edit.id %]">[% l('Approve edit') %]</a>
       [% END %]
 
       [% IF edit.editor_may_cancel(c.user) %]

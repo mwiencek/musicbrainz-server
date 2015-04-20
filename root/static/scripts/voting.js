@@ -5,12 +5,36 @@
 
 var $ = require('jquery');
 var i18n = require('./common/i18n');
+var request = require('./common/utility/request');
 
 var SELECTED_CLASS = {
     '1':  'vote-yes',
     '0':  'vote-no',
     '-1': 'vote-abs'
 };
+
+function approveEdit($edit, id, note) {
+    return request({
+        url: '/edit/' + id + '/approve',
+        type: 'POST',
+        data: JSON.stringify({note: note}),
+        contentType: 'application/json; charset=utf-8'
+
+    }).done(function () {
+        $edit.remove();
+
+    }).fail(function (jqXHR, textStatus) {
+        var error;
+
+        if (jqXHR.status == 400) {
+            error = JSON.parse(jqXHR.responseText).error;
+        } else {
+            error = i18n.l('Error: {error}', {error: 'HTTP status code ' + jqXHR.status});
+        }
+
+        $edit.find('.edit-action-status').text(error);
+    });
+}
 
 $(document)
     .on('change', 'div.vote input[type=radio]', function () {
@@ -35,6 +59,18 @@ $(document)
             $button.html(i18n.l("Add Note"));
             $editNoteField.val('');
         }
+    })
+    .on('click', '.approve-button', function (event) {
+        event.preventDefault();
+
+        var id = this.getAttribute('data-edit-id');
+        var $edit = $('#edit-id-' + id);
+        var $note = $('#edit-id-' + id + '-note');
+        var $buttonAndNote = $(this).add($note).prop('disabled', true);
+
+        approveEdit($edit, id, $.trim($note.val())).fail(function () {
+            $buttonAndNote.prop('disabled', false);
+        });
     });
 
 $('div.vote input:checked').change();

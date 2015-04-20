@@ -15,7 +15,7 @@
 [%~ END ~%]
 
 <div class="edit-header[%- PROCESS edit_status -%] edit-[%~ edit.edit_kind =%]
-            [%= css_class_name(edit.edit_name) ~%]">
+            [%= css_class_name(edit.edit_name) ~%]" id="edit-id-[% edit.id %]">
     [%~ IF summary ~%]
         <div class="edit-description">
             <table>
