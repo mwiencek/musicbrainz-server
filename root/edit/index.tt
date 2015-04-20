@@ -71,5 +71,6 @@
       [%- INCLUDE "edit/info.tt" -%]
     [% END %]
   [%- END -%]
-[%- END -%]
 
+  [%- script_manifest('voting.js') -%]
+[%- END -%]

@@ -47,6 +47,31 @@
 </div>
 
 [% IF edits.size %]
+    [% IF c.user.is_auto_editor %]
+        <div class="voteopts overall-vote">
+            <div>[% l('Vote on all edits:') %]</div>
+            <div class="vote">
+                <label>
+                    <input type="radio" value="1" name="vote-on-all" id="vote-all-yes"> [% lp('Yes', 'vote') %]
+                </label>
+            </div>
+            <div class="vote">
+                <label>
+                    <input type="radio" value="0" name="vote-on-all" id="vote-all-no"> [% lp('No', 'vote') %]
+                </label>
+            </div>
+            <div class="vote">
+                <label>
+                    <input type="radio" value="-1" name="vote-on-all" id="vote-all-abstain"> [% lp('Abstain', 'vote') %]
+                </label>
+            </div>
+            <div class="vote">
+                <label>
+                    <input type="radio" value="-2" name="vote-on-all" id="vote-all-none"> [% l('None') %]
+                </label>
+            </div>
+        </div>
+    [% END %]
     <div id="edits">
     [% WRAPPER 'components/with-pager.tt' search=0;
     # We always want search != 1 when calling the paginator from this template %]
@@ -90,12 +115,4 @@
     [% END %]
 [% END %]
 
-<script type="text/javascript">//<![CDATA[
-  $(".edit-list").each(function () {
-      MB.Control.EditSummary(this);
-  });
-
-  [% IF c.user.is_auto_editor %]
-    MB.Control.EditList("#edits");
-  [% END %]
-//]]></script>
+[%- script_manifest('voting.js') -%]
