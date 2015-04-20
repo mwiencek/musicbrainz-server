@@ -1015,3 +1015,28 @@ END -%]
 [%~ MACRO data_track_icon BLOCK ~%]
   <div class="data-track icon img" title="[% l('This track is a data track.') %]"></div>
 [%~ END ~%]
+
+[%~ MACRO edit_action_buttons(edit, show_add_note) BLOCK ~%]
+  [% IF !server_details.read_only && (edit.editor_may_add_note(c.user) || edit.editor_may_approve(c.user) || edit.editor_may_cancel(c.user)) %]
+    <div class="buttons">
+      [% IF show_add_note && edit.editor_may_add_note(c.user) %]
+        <a class="positive edit-note-toggle">[% l('Add Note') %]</a>
+      [% END %]
+
+      [% IF edit.editor_may_approve(c.user) %]
+        <a class="positive" href="[% c.uri_for_action('/edit/approve', [ edit.id ], { returnto=c.req.uri }) %]">[% l('Approve edit') %]</a>
+      [% END %]
+
+      [% IF edit.editor_may_cancel(c.user) %]
+        <a class="negative" href="[% c.uri_for_action('/edit/cancel', [ edit.id ], { returnto=c.req.uri }) %]">[% l('Cancel edit') %]</a>
+      [% END %]
+
+      [% IF edit.is_open AND server_details.testing_features %]
+        <a class="positive" href="[% c.uri_for_action('/test/accept_edit', edit.id) %]">[% l('Accept edit') %]</a>
+        <a class="negative" href="[% c.uri_for_action('/test/reject_edit', edit.id) %]">[% l('Reject edit') %]</a>
+      [% END %]
+    </div>
+    <div class="edit-action-status">
+    </div>
+  [% END %]
+[%~ END ~%]
