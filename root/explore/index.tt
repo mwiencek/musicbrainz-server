@@ -1,0 +1,12 @@
+[%- WRAPPER 'layout.tt' title=l('Explore') -%]
+  <div id="content"></div>
+  <script>
+    MB.init_explore({
+      Entity: [% entity %],
+      Country: [% country %],
+      Language: [% language %],
+      Script: [% script %],
+      TypeData: [% type_info %]
+    }, document.getElementById("content"));
+  </script>
+[%- END -%]
