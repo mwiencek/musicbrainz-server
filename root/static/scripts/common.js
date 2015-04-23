@@ -16,6 +16,7 @@ require("./common/text-collapse");
 require("./common/artworkViewer");
 require("./common/dialogs");
 require("./common/entity");
+require("./common/explore");
 require("./common/MB/Control/Autocomplete");
 require("./common/MB/Control/Filter");
 require("./common/MB/Control/Menu");

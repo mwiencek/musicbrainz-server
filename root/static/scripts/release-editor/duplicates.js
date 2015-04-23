@@ -4,8 +4,13 @@
 // http://www.gnu.org/licenses/gpl-2.0.txt
 
 const {isCompleteArtistCredit} = require('../common/immutable-entities');
+const {cleanWebServiceData} = require('../common/utility/cleanWebServiceData');
 const debounce = require('../common/utility/debounce');
 const request = require('../common/utility/request');
+const {escapeLuceneValue,
+       constructLuceneField,
+       constructLuceneFieldConjunction
+      } = require('../common/utility/search');
 
 (function (releaseEditor) {
 
@@ -81,12 +86,12 @@ const request = require('../common/utility/request');
                 return;
             }
 
-            var query = utils.constructLuceneFieldConjunction({
-                release: [ utils.escapeLuceneValue(name) ],
+            var query = constructLuceneFieldConjunction({
+                release: [ escapeLuceneValue(name) ],
 
                 arid: _(ac.names.toJS())
                         .pluck("artist").pluck("gid")
-                        .map(utils.escapeLuceneValue).value()
+                        .map(escapeLuceneValue).value()
             });
 
             toggleLoadingIndicator(true);
@@ -123,7 +128,7 @@ const request = require('../common/utility/request');
 
 
     function formatReleaseData(release) {
-        var clean = MB.entity.Release(utils.cleanWebServiceData(release));
+        var clean = MB.entity.Release(cleanWebServiceData(release));
 
         var events = _(release["release-events"]);
         var labels = _(release["label-info"]);

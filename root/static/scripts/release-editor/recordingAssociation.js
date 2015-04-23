@@ -9,8 +9,13 @@ const {
         isCompleteArtistCredit,
         reduceArtistCredit,
     } = require('../common/immutable-entities');
-const request = require('../common/utility/request');
+const {cleanWebServiceData} = require('../common/utility/cleanWebServiceData');
 const debounce = require('../common/utility/debounce');
+const request = require('../common/utility/request');
+const {escapeLuceneValue,
+       constructLuceneField,
+       constructLuceneFieldConjunction
+      } = require('../common/utility/search');
 
 (function (releaseEditor) {
 
@@ -99,8 +104,8 @@ const debounce = require('../common/utility/debounce');
     function getReleaseGroupRecordings(releaseGroup, offset, results) {
         if (!releaseGroup || !releaseGroup.gid) return;
 
-        var query = utils.constructLuceneField(
-            [ utils.escapeLuceneValue(releaseGroup.gid) ], "rgid"
+        var query = constructLuceneField(
+            [ escapeLuceneValue(releaseGroup.gid) ], "rgid"
         );
 
         utils.search("recording", query, 100, offset)
@@ -125,14 +130,14 @@ const debounce = require('../common/utility/debounce');
 
     function recordingQuery(track, name) {
         var params = {
-            recording: [ utils.escapeLuceneValue(name) ],
+            recording: [ escapeLuceneValue(name) ],
 
             arid: _(track.artistCredit().names.toJS()).pluck("artist")
-                .pluck("gid").map(utils.escapeLuceneValue).value()
+                .pluck("gid").map(escapeLuceneValue).value()
         };
 
-        var titleAndArtists = utils.constructLuceneFieldConjunction(params);
-        var justTitle = utils.constructLuceneField(params.recording, "recording");
+        var titleAndArtists = constructLuceneFieldConjunction(params);
+        var justTitle = constructLuceneField(params.recording, "recording");
         var query = "(" + titleAndArtists + ")^2 OR (" + justTitle + ")";
 
         var duration = parseInt(track.length(), 10);
@@ -150,7 +155,7 @@ const debounce = require('../common/utility/debounce');
 
 
     function cleanRecordingData(data) {
-        var clean = utils.cleanWebServiceData(data);
+        var clean = cleanWebServiceData(data);
 
         clean.artist = reduceArtistCredit(artistCreditFromArray(clean.artistCredit));
         clean.video = !!data.video;

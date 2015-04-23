@@ -20,6 +20,7 @@ require('./Control/URLCleanup');
 require('./CoverArt');
 require('./edit');
 require('./entity');
+require('./explore');
 require('./externalLinks');
 require('./GuessCase');
 require('./guessFeat');

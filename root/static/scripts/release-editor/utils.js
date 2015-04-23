@@ -63,38 +63,6 @@ const similarity = require('../edit/utility/similarity');
 
     // Webservice helpers
 
-    var specialLuceneChars = /([+\-&|!(){}[\]^"~*?:\\\/])/g;
-
-    utils.escapeLuceneValue = function (value) {
-        return String(value).replace(specialLuceneChars, "\\$1");
-    };
-
-    utils.constructLuceneField = function (values, key) {
-        return key + ":(" + values.join(" OR ") + ")";
-    }
-
-    utils.constructLuceneFieldConjunction = function (params) {
-        return _.map(params, utils.constructLuceneField).join(" AND ");
-    };
-
-
-    utils.search = function (resource, query, limit, offset) {
-        var requestArgs = {
-            url: "/ws/2/" + resource,
-            data: {
-                fmt: "json",
-                query: query
-            }
-        };
-
-        if (limit !== undefined) requestArgs.data.limit = limit;
-
-        if (offset !== undefined) requestArgs.data.offset = offset;
-
-        return request(requestArgs);
-    };
-
-
     utils.reuseExistingMediumData = function (data) {
         // When reusing an existing medium, we don't want to keep its id or
         // its cdtocs, since neither of those will be shared. However, if we
@@ -106,41 +74,6 @@ const similarity = require('../edit/utility/similarity');
 
         return newData;
     };
-
-
-    // Converts JSON from /ws/2 into /ws/js-formatted data. Hopefully one day
-    // we'll have a standard MB data format and this won't be needed.
-
-    utils.cleanWebServiceData = function (data) {
-        var clean = { gid: data.id, name: data.title };
-
-        if (data.length) clean.length = data.length;
-
-        if (data["sort-name"]) clean.sortName = data["sort-name"];
-
-        if (data["artist-credit"]) {
-            clean.artistCredit = _.map(data["artist-credit"], cleanArtistCreditName);
-        }
-
-        if (data.disambiguation) {
-            clean.comment = data.disambiguation;
-        }
-
-        return clean;
-    };
-
-    function cleanArtistCreditName(data) {
-        return {
-            artist: {
-                gid: data.artist.id,
-                name: data.artist.name,
-                sortName: data.artist["sort-name"],
-                entityType: 'artist',
-            },
-            name: data.name || data.artist.name,
-            joinPhrase: data.joinphrase || ""
-        };
-    }
 
 
     // Metadata comparison utilities.
