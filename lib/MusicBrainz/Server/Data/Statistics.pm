@@ -118,11 +118,18 @@ my %stats = (
         CALC => sub {
             my ($self, $sql) = @_;
             my $id_edits = $sql->select_list_of_lists(
-                "SELECT id, (edits_accepted + auto_edits_accepted) AS count FROM editor
-                 WHERE (edits_accepted + auto_edits_accepted) > 0
-                   AND cast(privs AS bit(2)) & B'10' = B'00'
-                 ORDER BY (edits_accepted + auto_edits_accepted) DESC, musicbrainz_collate(editor.name)
-                 LIMIT 25"
+                "SELECT editor.id, edit_counts.count
+                   FROM editor JOIN (
+                            SELECT editor, COUNT(*) AS count
+                              FROM edit
+                             WHERE status = ?
+                             GROUP BY editor
+                        ) edit_counts ON editor.id = edit_counts.editor
+                  WHERE edit_counts.count > 0
+                    AND cast(editor.privs AS bit(2)) & B'10' = B'00'
+                  ORDER BY edit_counts.count DESC, musicbrainz_collate(editor.name)
+                  LIMIT 25",
+                $STATUS_APPLIED,
             );
 
             my %map;
@@ -669,7 +676,7 @@ my %stats = (
                 SELECT count(id),
                        NOT deleted AS valid,
                        email_confirm_date IS NOT NULL AS validated,
-                       (edits_accepted > 0 OR edits_rejected > 0 OR auto_edits_accepted > 0 OR edits_failed > 0) AS edits,
+                       (SELECT COUNT(*) FROM edit WHERE edit.editor = editor.id) AS edits,
                        tag_editors.editor IS NOT NULL as tags,
                        rating_editors.editor IS NOT NULL AS ratings,
                        subscribed_editors.editor IS NOT NULL AS subscriptions,
