@@ -16,10 +16,9 @@ use MusicBrainz::Server::EditRegistry;
 use MusicBrainz::Server::Edit::Exceptions;
 use MusicBrainz::Server::Constants qw(
     :edit_status
-    $VOTE_YES
+    :vote
     $AUTO_EDITOR_FLAG
     $UNTRUSTED_FLAG
-    $VOTE_APPROVE
     $MINIMUM_RESPONSE_PERIOD
     $LIMIT_FOR_EDIT_LISTING
     $OPEN_EDIT_DURATION
@@ -56,7 +55,7 @@ sub _table
 sub _columns
 {
     return 'edit.id, edit.editor, edit.open_time, edit.expire_time, edit.close_time,
-            edit.data, edit.language, edit.type, edit.yes_votes, edit.no_votes,
+            edit.data, edit.language, edit.type,
             edit.autoedit, edit.status, edit.quality';
 }
 
@@ -72,8 +71,6 @@ sub _new_from_row
     my $edit = $class->new({
         c => $self->c,
         id => $row->{id},
-        yes_votes => $row->{yes_votes},
-        no_votes => $row->{no_votes},
         editor_id => $row->{editor},
         created_time => $row->{open_time},
         expires_time => $row->{expire_time},
@@ -736,6 +733,27 @@ sub default_includes {
                 }
             }
         }
+    }
+}
+
+sub load_vote_counts {
+    my ($self, @edits) = @_;
+
+    my $query =
+        'SELECT edit,
+                SUM(CASE WHEN vote = ? THEN 1 ELSE 0 END) AS yes_votes,
+                SUM(CASE WHEN vote = ? THEN 1 ELSE 0 END) AS no_votes
+           FROM vote
+          WHERE NOT superseded
+            AND edit = ANY (?)
+       GROUP BY edit';
+    my $vote_counts = $self->sql->select_list_of_lists($query, $VOTE_YES, $VOTE_NO, [ map { $_->id } @edits ]);
+    my %by_edit = map { my ($edit, $yes, $no) = @$_; $edit => [ $yes, $no ] } @$vote_counts;
+
+    for my $edit (@edits) {
+        my ($yes, $no) = @{ $by_edit{$edit->id} // [ 0, 0 ] };
+        $edit->yes_votes($yes);
+        $edit->no_votes($no);
     }
 }
 
