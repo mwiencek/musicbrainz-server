@@ -881,7 +881,6 @@ sub _close
     $self->c->sql->do($query, $status, $edit->id);
     $edit->adjust_edit_pending(-1) unless $edit->auto_edit;
     $edit->status($status);
-    $self->c->model('Editor')->credit($edit->editor_id, $status, %opts);
 }
 
 sub insert_votes_and_notes {
