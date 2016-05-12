@@ -86,17 +86,8 @@ sub enter_votes
 
         # Supersede any existing votes
         $query = 'UPDATE vote SET superseded = TRUE' .
-                 ' WHERE editor = ? AND superseded = FALSE AND edit IN (' . placeholders(@edit_ids) . ')'.
-                 ' RETURNING edit, vote';
-        my $superseded = $self->sql->select_list_of_hashes($query, $editor_id, @edit_ids);
-
-        my %delta;
-        # Change the vote count delta for any votes that were changed
-        for my $s (@$superseded) {
-            my $id = $s->{edit};
-            --( $delta{ $id }->{no}  ) if $s->{vote} == $VOTE_NO;
-            --( $delta{ $id }->{yes} ) if $s->{vote} == $VOTE_YES;
-        }
+                 ' WHERE editor = ? AND superseded = FALSE AND edit IN (' . placeholders(@edit_ids) . ')';
+        $self->sql->do($query, $editor_id, @edit_ids);
 
         # Select all edits which have more than 0 'no' votes already.
         $query = 'SELECT id FROM edit WHERE id IN (' . placeholders(@edit_ids) . ') ' .

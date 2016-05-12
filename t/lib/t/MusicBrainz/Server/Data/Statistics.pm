@@ -83,19 +83,15 @@ INSERT INTO editor (id, name, password, ha1, email, email_confirm_date)
 INSERT INTO edit (id, data, status, type, open_time, expire_time, editor)
 VALUES
 -- Edits that should count
-  (1, '{}', 1, 1, now(), now(), 1),
+  (1, '{}', 2, 1, now(), now(), 1),
   (2, '{}', 2, 1, now(), now(), 1),
-  (3, '{}', 1, 1, now() - '5 day'::interval, now(), 2),
+  (3, '{}', 2, 1, now() - '5 day'::interval, now(), 2),
 
 -- Failed edits dont count
   (4, '{}', 4, 1, now(), now(), 3),
 
 -- Old edits do count
   (5, '{}', 2, 1, '1970-01-01', now(), 4);
-
-UPDATE editor SET edits_accepted = 2 WHERE id = 1;
-UPDATE editor SET edits_accepted = 1 WHERE id = 2;
-UPDATE editor SET edits_accepted = 1 WHERE id = 4;
 EOSQL
 
     ok !exception { $test->c->model('Statistics')->recalculate_all };
