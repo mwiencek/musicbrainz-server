@@ -143,7 +143,8 @@ sub STATIC_RESOURCES_LOCATION { 'http://localhost:5000/static/build' }
 # Mail Settings
 ################################################################################
 
-sub SMTP_SERVER { "localhost" }
+sub SMTP_HOST { "localhost" }
+sub SMTP_PORT { 25 }
 
 # This value should be set to some secret value for your server.  Any old
 # string of stuff should do; something suitably long and random, like for

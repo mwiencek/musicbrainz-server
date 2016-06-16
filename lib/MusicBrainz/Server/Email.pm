@@ -559,7 +559,8 @@ sub _build_transport
     }
 
     return Email::Sender::Transport::SMTP->new({
-        host => DBDefs->SMTP_SERVER,
+        host => DBDefs->SMTP_HOST,
+        port => DBDefs->SMTP_PORT,
     });
 }
 

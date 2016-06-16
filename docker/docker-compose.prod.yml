@@ -1,0 +1,28 @@
+version: '2'
+
+services:
+  musicbrainz-server:
+    environment:
+      - "constraint:class==app"
+      - SERVICE_NAME=musicbrainz-server
+      - SERVICE_TAGS=prod
+    image: metabrainz/musicbrainz-server:prod
+    restart: always
+
+  musicbrainz-server-cron:
+    environment:
+      - "constraint:class==app"
+      - SERVICE_NAME=musicbrainz-server-cron
+      - SERVICE_TAGS=prod
+    image: metabrainz/musicbrainz-server-cron
+    restart: always
+
+  musicbrainz-template-renderer:
+    environment:
+      - "constraint:class==app"
+      - SERVICE_NAME=musicbrainz-template-renderer
+      - SERVICE_TAGS=prod
+    ports:
+      - "9009"
+    image: metabrainz/musicbrainz-template-renderer:prod
+    restart: always

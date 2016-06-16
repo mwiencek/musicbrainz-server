@@ -1,0 +1,77 @@
+version: '2'
+
+services:
+  consul:
+    command: -server -bootstrap
+    image: progrium/consul
+    ports:
+      - "8500:8500"
+
+  git2consul:
+    command: --endpoint consul --port 8500 --config-file /etc/git2consul.d/config.json
+    image: cimpress/git2consul
+    links:
+      - consul
+    volumes:
+      - ../:/tmp/musicbrainz-server.git
+      - ./git2consul:/etc/git2consul.d
+
+  musicbrainz-server-dev:
+    build: musicbrainz-server-dev/
+    depends_on:
+      - git2consul
+    environment:
+      - SERVICE_NAME=musicbrainz-server
+      - SERVICE_TAGS=dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../:/home/musicbrainz/musicbrainz-server
+
+  musicbrainz-template-renderer:
+    build: musicbrainz-template-renderer/
+    depends_on:
+      - git2consul
+    environment:
+      - SERVICE_NAME=musicbrainz-template-renderer
+      - SERVICE_TAGS=dev
+    expose:
+      - "9009"
+    volumes:
+      - ../:/home/musicbrainz/musicbrainz-server
+
+  postgres-master:
+    depends_on:
+      - git2consul
+    environment:
+      - SERVICE_5432_NAME=postgres-master
+      - SERVICE_6899_NAME=pgbouncer-master
+      - SERVICE_TAGS=dev
+    image: metabrainz/postgres-master
+    expose:
+      - "5432"
+      - "6899"
+    volumes:
+      - postgres-master-data:/var/lib/postgresql/data
+
+  redis:
+    depends_on:
+      - git2consul
+    environment:
+      - SERVICE_NAME=redis
+      - SERVICE_TAGS=dev
+    image: redis:3.2.1
+    expose:
+      - "6379"
+
+  registrator:
+    command: -internal consul://consul:8500
+    image: gliderlabs/registrator
+    links:
+      - consul
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+
+volumes:
+  postgres-master-data:
+    driver: local

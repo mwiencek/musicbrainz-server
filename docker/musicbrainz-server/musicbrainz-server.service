@@ -1,0 +1,9 @@
+#!/bin/sh
+
+source /etc/mbs_service_helpers.sh
+
+mbs_dependencies
+
+exec chpst -u musicbrainz:musicbrainz \
+    env HOME=$MBS_HOME \
+    /etc/sv/musicbrainz-server/start.sh

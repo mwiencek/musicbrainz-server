@@ -1,0 +1,2 @@
+export DEPLOY_ENV=beta
+export STARLET_MAX_WORKERS=25

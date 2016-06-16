@@ -1,0 +1,18 @@
+{
+  "services": {
+    "musicbrainz-server": {
+      "DBDefs": {
+        "CATALYST_DEBUG": "0",
+        "DB_SCHEMA_SEQUENCE": "23",
+        "DB_STAGING_TESTING_FEATURES": "0",
+        "DEVELOPMENT_SERVER": "0",
+        "MB_LANGUAGES": "en de fr nl",
+        "RENDERER_X_ACCEL_REDIRECT": "1",
+        "REPLICATION_TYPE": "RT_STANDALONE",
+        "STAT_TTL": "1200",
+        "WEB_SERVER": "localhost",
+        "WEB_SERVER_USED_IN_EMAIL": "localhost"
+      }
+    }
+  }
+}

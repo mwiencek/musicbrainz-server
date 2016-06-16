@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+  musicbrainz-server:
+    environment:
+      - "constraint:class==app"
+      - SERVICE_NAME=musicbrainz-server
+      - SERVICE_TAGS=beta
+    image: metabrainz/musicbrainz-server:beta
+    restart: always
+
+  musicbrainz-template-renderer:
+    environment:
+      - "constraint:class==app"
+      - SERVICE_NAME=musicbrainz-template-renderer
+      - SERVICE_TAGS=beta
+    ports:
+      - "9009"
+    image: metabrainz/musicbrainz-template-renderer:beta
+    restart: always

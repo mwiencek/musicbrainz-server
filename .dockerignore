@@ -1,0 +1,9 @@
+.dockerignore
+.DS_Store
+blib/
+docker/*/Dockerfile
+Dockerfile
+lib/DBDefs.pm
+lib/DBDefs.pm.bak
+local/
+node_modules/

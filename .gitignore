@@ -42,3 +42,6 @@
 
 # Carton
 /local/
+
+# DBDefs files backed up by consul-template.
+lib/DBDefs.pm.bak
