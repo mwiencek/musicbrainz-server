@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const React = require('react');
 
+const DBDefs = require('./scripts/common/DBDefs');
+
 let MANIFEST_MTIME = 0;
 let MANIFEST_LAST_CHECKED = 0;
 let MANIFEST_SIGNAUTRES = {};
@@ -29,7 +31,7 @@ function pathTo(manifest) {
     throw new Error('no such manifest: ' + manifest);
   }
 
-  return path.join('/static/build/', MANIFEST_SIGNAUTRES[manifest]);
+  return DBDefs.STATIC_RESOURCES_LOCATION + '/' + MANIFEST_SIGNAUTRES[manifest];
 }
 
 function js(manifest) {

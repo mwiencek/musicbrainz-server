@@ -144,6 +144,8 @@ function langToPosix(lang) {
 function buildScripts() {
   process.env.NODE_ENV = String(process.env.DEVELOPMENT_SERVER) === '1' ? 'development' : 'production';
 
+  shell.exec(path.resolve(CHECKOUT_DIR, 'script/dbdefs_to_js.pl'));
+
   var commonBundle = runYarb('common.js');
 
   _((process.env.MB_LANGUAGES || '').replace(/\s+/g, ''))
