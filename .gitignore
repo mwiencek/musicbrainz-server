@@ -39,3 +39,6 @@
 
 # Ignore schema change catchup folder
 /catchup
+
+# Carton
+/local/
