@@ -72,7 +72,7 @@ const ReleaseGroupResults = (props) => (
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
-            <td>{wsEntityLink(item, 'release-group')}</td>
+            <td>{wsEntityLink(item, 'release_group')}</td>
             <td>{wsArtistCreditLink(item['artist-credit'])}</td>
             <td>{typeRender(item)}</td>
             <td>{item.count}</td>
