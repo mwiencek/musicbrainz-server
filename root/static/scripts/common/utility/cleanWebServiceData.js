@@ -6,6 +6,8 @@
 // Converts JSON from /ws/2 into /ws/js-formatted data. Hopefully one day
 // we'll have a standard MB data format and this won't be needed.
 
+const _ = require('lodash');
+
 function cleanArtistCreditName(data) {
   return {
     artist: {
@@ -17,6 +19,10 @@ function cleanArtistCreditName(data) {
     name: data.name || data.artist.name,
     joinPhrase: data.joinphrase || ""
   };
+}
+
+function cleanArtistCredit(data) {
+  return _.map(data, cleanArtistCreditName);
 }
 
 function cleanWebServiceData(data) {
@@ -31,7 +37,7 @@ function cleanWebServiceData(data) {
   }
 
   if (data['artist-credit']) {
-    clean.artistCredit = _.map(data["artist-credit"], cleanArtistCreditName);
+    clean.artistCredit = cleanArtistCredit(data['artist-credit']);
   }
 
   if (data.disambiguation) {
@@ -41,4 +47,5 @@ function cleanWebServiceData(data) {
   return clean;
 }
 
-module.exports = cleanWebServiceData;
+exports.cleanArtistCredit = cleanArtistCredit;
+exports.cleanWebServiceData = cleanWebServiceData;

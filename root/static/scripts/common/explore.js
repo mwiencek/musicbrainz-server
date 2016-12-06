@@ -8,10 +8,12 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 
 const {isDateValid} = require('../edit/utility/dates');
+const ArtistCreditLink = require('./components/ArtistCreditLink');
 const EntityLink = require('./components/EntityLink');
 const {addColon, l, ln} = require('./i18n');
+const {artistCreditFromArray} = require('./immutable-entities');
 const formatTrackLength = require('./utility/formatTrackLength');
-const cleanWebServiceData = require('./utility/cleanWebServiceData');
+const {cleanArtistCredit, cleanWebServiceData} = require('./utility/cleanWebServiceData');
 const {escapeLuceneValue, constructLuceneFieldConjunction} = require('./utility/search');
 
 // Called from root/explore/index.tt
@@ -37,19 +39,16 @@ function wsEntityLink(data, entityType) {
   return <EntityLink entity={data} />;
 }
 
-const ArtistCredit = React.createClass({
-  render: function () {
-    return (
-      <div>
-        {this.props.artists.map(function (artist, idx) {
-          return (
-            <span key={idx}><a href={"/artist/" + artist.artist.id}><bdi>{artist.artist.name}</bdi></a>{artist.joinphrase}&nbsp;</span>
-          );
-        })}
-      </div>
-    );
+function wsArtistCreditLink(data) {
+  if (!data) {
+    return null;
   }
-});
+  return (
+    <ArtistCreditLink
+      artistCredit={artistCreditFromArray(cleanArtistCredit(data))}
+    />
+  );
+}
 
 function typeRender(item) {
   return (item['primary-type'] && item['secondary-types']) ? item['primary-type'] + ' + ' + item['secondary-types'].join(' + ') : (item['primary-type'] ? item['primary-type'] : (item['secondary-types'] ? item['secondary-types'].join(' + ') : null));
@@ -73,7 +72,7 @@ const ReleaseGroupResults = (props) => (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
             <td>{wsEntityLink(item, 'release-group')}</td>
-            <td>{item['artist-credit'] ? <ArtistCredit artists={item['artist-credit']} /> : null}</td>
+            <td>{wsArtistCreditLink(item['artist-credit'])}</td>
             <td>{typeRender(item)}</td>
             <td>{item.count}</td>
             <td>
@@ -112,7 +111,7 @@ const RecordingResults = (props) => (
             <td>{item.video ? <div className="video c is-video" title={l("This recording is a video")}>&nbsp;</div> : null}</td>
             <td>{wsEntityLink(item, 'recording')}</td>
             <td>{formatTrackLength(item.length)}</td>
-            <td>{item['artist-credit'] ? <ArtistCredit artists={item['artist-credit']} /> : null}</td>
+            <td>{wsArtistCreditLink(item['artist-credit'])}</td>
             <td>
               {item.releases && item.releases.map(function (release, i) {
                 const rg = release['release-group'];
@@ -275,9 +274,7 @@ const ReleaseResults = (props) => (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
             <td>{wsEntityLink(item, 'release')}</td>
-            <td>
-              {item['artist-credit'] && item['artist-credit'][0] && item['artist-credit'][0].artist && <a href={"/artist/" + item['artist-credit'][0].artist.id}><bdi>{item['artist-credit'][0].artist.name}</bdi></a>}
-            </td>
+            <td>{wsArtistCreditLink(item['artist-credit'])}</td>
             <td>{(item.media && item.media[0]) ? item.media[0].format : null}</td>
             <td>{item['track-count']}</td>
             <td>{item.date}</td>
