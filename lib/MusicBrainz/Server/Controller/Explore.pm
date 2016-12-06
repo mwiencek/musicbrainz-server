@@ -3,6 +3,7 @@ package MusicBrainz::Server::Controller::Explore;
 use Moose;
 use MusicBrainz::Server::Translation qw( l lp );
 use MusicBrainz::Server::Constants qw( entities_with );
+use MusicBrainz::Server::Data::Utils qw( model_to_type );
 use MusicBrainz::Server::Form::Utils qw(
     select_options
     script_options
@@ -16,12 +17,8 @@ BEGIN { extends 'MusicBrainz::Server::Controller' }
 sub explore : Path('') {
     my ($self, $c) = @_;
 
-    my @entities = entities_with(['mbid' , 'relatable']);
-
-    my %type_info = map {
-        $_ => [ map +{ l_name => $_->l_name, name => $_->name },
-                $c->model($_)->get_all ],
-    } qw(
+    my %option_data;
+    for my $model (qw(
         ArtistType
         EventType
         Gender
@@ -34,29 +31,27 @@ sub explore : Path('') {
         ReleaseStatus
         SeriesType
         WorkType
-    );
+    )) {
+        $option_data{model_to_type($model)} = [
+            map +{ label => $_->l_name, value => lc $_->name },
+            $c->model($model)->get_all
+        ];
+    }
 
-    my @countries_hash = select_options(
+    my $json = JSON->new->utf8(0);
+    $option_data{entity} = [grep { $_ ne 'url' } entities_with(['mbid' , 'relatable'])];
+    $option_data{country} = select_options(
         $c, 'CountryArea',
         serializer => sub {
-            return {
-                code => $_[0]->iso_3166_1,
-                label => $_[0]->l_name,
-                value => $_[0]->id,
-            };
+            return { label => $_[0]->l_name, value => $_[0]->country_code };
         }
     );
-    my @languages_hash = build_grouped_options($c, language_options($c));
-    my @scripts_hash = build_grouped_options($c, script_options($c)),
-    my $json = JSON->new->utf8(0);
+    $option_data{language} = build_grouped_options($c, language_options($c));
+    $option_data{script} = build_grouped_options($c, script_options($c));
 
     $c->stash(
-        country => $json->encode(\@countries_hash),
-        entity => $json->encode(\@entities),
-        language => $json->encode(\@languages_hash),
-        script => $json->encode(\@scripts_hash),
         template => 'explore/index.tt',
-        type_info => $json->encode(\%type_info),
+        option_data => $json->encode(\%option_data),
     );
 }
 

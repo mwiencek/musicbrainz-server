@@ -16,18 +16,19 @@ const formatTrackLength = require('./utility/formatTrackLength');
 const {cleanArtistCredit, cleanWebServiceData} = require('./utility/cleanWebServiceData');
 const {escapeLuceneValue, constructLuceneFieldConjunction} = require('./utility/search');
 
+const COMMON_TAGS = [
+  'electronic',
+  'rock',
+  'jazz',
+  'classical',
+].map(tag => ({label: tag, value: tag}));
+
+const OPTIONS = {};
+
 // Called from root/explore/index.tt
 MB.init_explore = function (options, mountPoint) {
-  options.Entity = _.without(options.Entity, 'url').sort();
-
-  // Move all the content in TypeData attribute to outside
-  _.forIn(options.TypeData, function (value, key) {
-    options[key] = value;
-  });
-  delete options.TypeData;
-
-  const contentElement = <Content optionsCollection={options} />;
-  return ReactDOM.render(contentElement, mountPoint);
+  _.assign(OPTIONS, options);
+  ReactDOM.render(<Content />, mountPoint);
 };
 
 function wsEntityLink(data, entityType) {
@@ -574,7 +575,7 @@ const ListSelectField = React.createClass({
   },
 
   render: function () {
-    const options = _.pluck(this.props.options, 'l_name')[0] ? this.props.options : this.props.options[0]; // First option to support for WorkType and the alternative for the rest
+    const {entity, options} = this.props;
     const field = this.props.heading.toLowerCase();
     return (
       <div>
@@ -583,25 +584,26 @@ const ListSelectField = React.createClass({
           return (
             <div key={idx}>
               <select data-index={idx} onChange={this.handleSelect}>
-                <option id={this.props.entity + '-' + field + '-null-' + idx} value="">&nbsp;</option>
-                {options[0].optgroup ?
-                  options.map(function (optgroup, index) {
+                <option id={entity + '-' + field + '-null-' + idx} value="">&nbsp;</option>
+                <If condition={options[0].optgroup}>
+                  {options.map(function (optgroup, index) {
                     return (
                       <optgroup label={optgroup.optgroup} key={index}>
                       {optgroup.options.map(function (opt, i) {
                         return (
-                          <option key={i} id={this.props.entity + '-' + field + '-' + i + '-' + idx} value={opt.code}>{opt.label}</option>
+                          <option key={i} id={entity + '-' + field + '-' + i + '-' + idx} value={opt.value}>{opt.label}</option>
                         );
-                      }, this)}
+                      })}
                       </optgroup>
                     );
-                  }, this) :
-                  options.map(function (opt, i) {
+                  })}
+                <Else />
+                  {options.map(function (opt, i) {
                     return (
-                      <option key={i} id={this.props.entity +  '-' + field + '-'  + i + '-' + idx} value={opt.code ? opt.code[0] : (opt.name ? opt.name.toLowerCase() : null)}>{opt.label ? opt.label : opt.l_name}</option>
+                      <option key={i} id={entity +  '-' + field + '-'  + i + '-' + idx} value={opt.value}>{opt.label}</option>
                     );
-                  }, this)
-                }
+                  })}
+                </If>
               </select>
             </div>
           );
@@ -838,11 +840,11 @@ const SelectField = React.createClass({
         <h3>{props.heading}</h3>
         <div className="select-list">
           {props.options.map(function (opt, i) {
-            const value = opt.name.toLowerCase();
+            const value = opt.value;
             return (
               <div key={i}>
                 <input onChange={this.handleSelect} type="checkbox" value={value} id={props.field + value}></input>
-                <label htmlFor={props.field + value}>{opt.l_name}</label>
+                <label htmlFor={props.field + value}>{opt.label}</label>
               </div>
             );
           }, this)}
@@ -949,7 +951,7 @@ const InputSelectField = React.createClass({
 
       // Check if input value already exists
       const index = _.findIndex(opts, function (opt) {
-        return (opt.name.toLowerCase() === input.toLowerCase()); // Equals ignore case
+        return (opt.value === input.toLowerCase());
       });
       if (index < 0) {
         this.setState({
@@ -975,13 +977,13 @@ const InputSelectField = React.createClass({
               <div key={i}>
                 <input
                   defaultChecked={opt.checked}
-                  id={props.field + opt.name.toLowerCase()}
+                  id={props.field + opt.value}
                   onChange={this.handleSelect}
                   type="checkbox"
-                  value={opt.name.toLowerCase()}
+                  value={opt.value}
                 />
-                <label htmlFor={props.field + opt.name.toLowerCase()}>
-                  {opt.name}
+                <label htmlFor={props.field + opt.value}>
+                  {opt.label}
                 </label>
               </div>
             );
@@ -1046,12 +1048,12 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.ArtistType} />
-                <SelectField {...commonProps} heading={l("Gender")} field="gender" options={this.props.optionsCollection.Gender} />
-                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={this.props.optionsCollection.Country} buttonText={l("Add Country")} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.artist_type} />
+                <SelectField {...commonProps} heading={l("Gender")} field="gender" options={OPTIONS.gender} />
+                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={OPTIONS.country} buttonText={l("Add Country")} />
                 <DateRangeField {...commonProps} heading={l("Born/Founded")} field="begin"/>
                 <DateRangeField {...commonProps} heading={l("Died/Dissolved")} field="end"/>
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1060,12 +1062,12 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={this.props.optionsCollection.ReleaseGroupType} />
-                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={this.props.optionsCollection.ReleaseGroupSecondaryType} />
-                <SelectField {...commonProps} heading={l("Status")} field="status" options={this.props.optionsCollection.ReleaseStatus} />
+                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={OPTIONS.release_group_type} />
+                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={OPTIONS.release_group_secondary_type} />
+                <SelectField {...commonProps} heading={l("Status")} field="status" options={OPTIONS.release_status} />
                 <NumberOfField {...commonProps} heading={l("Number of Releases")} field="releases" textplaceholder={l("Specify number or range")} />
                 <InputSelectField {...commonProps} heading={l("Contains Release")} field="release" textplaceholder={l("Add a release")} options={[]} />
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1074,13 +1076,13 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={this.props.optionsCollection.Country} buttonText={l("Add Country")} />
+                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={OPTIONS.country} buttonText={l("Add Country")} />
                 <DateRangeField {...commonProps} heading={l("Release Date")} field="date"/>
                 <NumberOfField {...commonProps} heading={l("Duration")} field="dur" textplaceholder={l("Duration in milliseconds")} />
-                <SelectField {...commonProps} heading={l("Medium Format")} field="format" options={this.props.optionsCollection.MediumFormat} />
-                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={this.props.optionsCollection.ReleaseGroupType} />
-                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={this.props.optionsCollection.ReleaseGroupSecondaryType} />
-                <SelectField {...commonProps} heading={l("Status")} field="status" options={this.props.optionsCollection.ReleaseStatus} />
+                <SelectField {...commonProps} heading={l("Medium Format")} field="format" options={OPTIONS.medium_format} />
+                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={OPTIONS.release_group_type} />
+                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={OPTIONS.release_group_secondary_type} />
+                <SelectField {...commonProps} heading={l("Status")} field="status" options={OPTIONS.release_status} />
                 <NumberOfField {...commonProps} heading={l("Track count in the medium on release")} field="tracks" textplaceholder={l("Specify number or range")} />
                 <NumberOfField {...commonProps} heading={l("Track count on release as a whole")} field="tracksrelease" textplaceholder={l("Specify number or range")} />
               </div>
@@ -1091,9 +1093,9 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <ListSelectField {...commonProps} heading={l("Lyrics Language")} field="lang" options={this.props.optionsCollection.Language} buttonText={l("Add Language")} />
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
-                <ListSelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.WorkType} buttonText={l("Add Type")} />
+                <ListSelectField {...commonProps} heading={l("Lyrics Language")} field="lang" options={OPTIONS.language} buttonText={l("Add Language")} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
+                <ListSelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.work_type} buttonText={l("Add Type")} />
               </div>
             </div>
           </div>
@@ -1104,7 +1106,7 @@ const Panel = React.createClass({
               <div className="panel-body">
                 <DateRangeField {...commonProps} heading={l("Begin Date")} field="begin"/>
                 <DateRangeField {...commonProps} heading={l("End Date")} field="end"/>
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1113,7 +1115,7 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.PlaceType} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.place_type} />
                 <DateRangeField {...commonProps} heading={l("Begin Date")} field="begin"/>
                 <DateRangeField {...commonProps} heading={l("End Date")} field="end"/>
               </div>
@@ -1124,17 +1126,17 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={this.props.optionsCollection.Country} buttonText={l("Add Country")} />
+                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={OPTIONS.country} buttonText={l("Add Country")} />
                 <DateRangeField {...commonProps} heading={l("Release Date")} field="date"/>
-                <SelectField {...commonProps} heading={l("Medium Format")} field="format" options={this.props.optionsCollection.MediumFormat} />
-                <ListSelectField {...commonProps} heading={l("Language")} field="lang" options={this.props.optionsCollection.Language} buttonText={l("Add Language")} />
+                <SelectField {...commonProps} heading={l("Medium Format")} field="format" options={OPTIONS.medium_format} />
+                <ListSelectField {...commonProps} heading={l("Language")} field="lang" options={OPTIONS.language} buttonText={l("Add Language")} />
                 <NumberOfField {...commonProps} heading={l("Medium Count")} field="mediums" textplaceholder={l("Specify number or range")} />
-                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={this.props.optionsCollection.ReleaseGroupType} />
-                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={this.props.optionsCollection.ReleaseGroupSecondaryType} />
+                <SelectField {...commonProps} heading={l("Primary Type")} field="primarytype" options={OPTIONS.release_group_type} />
+                <SelectField {...commonProps} heading={l("Secondary Type")} field="secondarytype" options={OPTIONS.release_group_secondary_type} />
                 <SelectField {...commonProps} heading={l("Quality")} field="quality" options={[{name: "Low", l_name: l("Low")}, {name: "Normal", l_name: l("Normal")}, {name: "High", l_name: l("High")}]} />
-                <ListSelectField {...commonProps} heading={l("Script")} field="script" options={this.props.optionsCollection.Script} buttonText={l("Add Script")} />
-                <SelectField {...commonProps} heading={l("Status")} field="status" options={this.props.optionsCollection.ReleaseStatus} />
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <ListSelectField {...commonProps} heading={l("Script")} field="script" options={OPTIONS.script} buttonText={l("Add Script")} />
+                <SelectField {...commonProps} heading={l("Status")} field="status" options={OPTIONS.release_status} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
                 <NumberOfField {...commonProps} heading={l("Track Count Over All Mediums")} field="tracks" textplaceholder={l("Specify number or range")} />
               </div>
             </div>
@@ -1144,11 +1146,11 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.LabelType} />
-                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={this.props.optionsCollection.Country} buttonText={l("Add Country")} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.label_type} />
+                <ListSelectField {...commonProps} heading={l("Country")} field="country" options={OPTIONS.country} buttonText={l("Add Country")} />
                 <DateRangeField {...commonProps} heading={l("Founding Date")} field="begin"/>
                 <DateRangeField {...commonProps} heading={l("End Date")} field="end"/>
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1157,10 +1159,10 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.EventType} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.event_type} />
                 <DateRangeField {...commonProps} heading={l("Begin Date")} field="begin"/>
                 <DateRangeField {...commonProps} heading={l("End Date")} field="end"/>
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1169,8 +1171,8 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.SeriesType} />
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.series_type} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1179,8 +1181,8 @@ const Panel = React.createClass({
           <div id={"collapse-" + this.props.name} className="panel-collapse">
             <div id={this.props.name}>
               <div className="panel-body">
-                <SelectField {...commonProps} heading={l("Type")} field="type" options={this.props.optionsCollection.InstrumentType} />
-                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={[{name: "electronic"}, {name: "rock"}, {name: "jazz"}, {name: "classical"}]} />
+                <SelectField {...commonProps} heading={l("Type")} field="type" options={OPTIONS.instrument_type} />
+                <InputSelectField {...commonProps} heading={l("Tags")} field="tag" textplaceholder={l("Add another tag")} options={COMMON_TAGS} />
               </div>
             </div>
           </div>
@@ -1227,7 +1229,7 @@ const EntityPanel = React.createClass({
   render: function () {
     return (
       <div>
-        {this.props.optionsCollection.Entity.map(function (opt, i) {
+        {OPTIONS.entity.map(function (opt, i) {
           return (
             <div key={i} className="panel">
               <Panel
@@ -1573,7 +1575,6 @@ const Content = React.createClass({
               <EntityPanel
                 addActiveOption={this.addActiveOption}
                 clearState={this.clearState}
-                optionsCollection={this.props.optionsCollection}
                 removeActiveOption={this.removeActiveOption}
                 setCurrentEntity={this.setCurrentEntity}
               />
