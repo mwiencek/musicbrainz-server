@@ -51,8 +51,23 @@ function wsArtistCreditLink(data) {
   );
 }
 
-function typeRender(item) {
-  return (item['primary-type'] && item['secondary-types']) ? item['primary-type'] + ' + ' + item['secondary-types'].join(' + ') : (item['primary-type'] ? item['primary-type'] : (item['secondary-types'] ? item['secondary-types'].join(' + ') : null));
+function renderReleaseGroupTypes(item) {
+  if (!item) {
+    return null;
+  }
+
+  const primaryType = item['primary-type'];
+  const secondaryTypes = item['secondary-types'];
+
+  if (primaryType && secondaryTypes) {
+    return primaryType + ' + ' + secondaryTypes.join(' + ');
+  } else if (primaryType) {
+    return primaryType;
+  } else if (secondaryTypes) {
+    return secondaryTypes.join(' + ');
+  }
+
+  return null;
 }
 
 const ReleaseGroupResults = (props) => (
@@ -74,7 +89,7 @@ const ReleaseGroupResults = (props) => (
             <td>{item.score}</td>
             <td>{wsEntityLink(item, 'release_group')}</td>
             <td>{wsArtistCreditLink(item['artist-credit'])}</td>
-            <td>{typeRender(item)}</td>
+            <td>{renderReleaseGroupTypes(item)}</td>
             <td>{item.count}</td>
             <td>
               {item.releases && item.releases.map(function (release, i) {
@@ -115,7 +130,6 @@ const RecordingResults = (props) => (
             <td>{wsArtistCreditLink(item['artist-credit'])}</td>
             <td>
               {item.releases && item.releases.map(function (release, i) {
-                const rg = release['release-group'];
                 return (
                   <div key={i}>
                     {wsEntityLink(release, 'release')}
@@ -123,7 +137,7 @@ const RecordingResults = (props) => (
                       <bdi>{release.title}</bdi>
                     </a>
                     &nbsp;
-                    {rg ? typeRender(rg) : null}
+                    {renderReleaseGroupTypes(release['release-group'])}
                   </div>
                 );
               })}
@@ -292,7 +306,7 @@ const ReleaseResults = (props) => (
             <td>{item['text-representation'] && item['text-representation'].language && item['text-representation'].script ?
               item['text-representation'].language + ' / ' + item['text-representation'].script :
               item['text-representation'] ? (item['text-representation'].language ? item['text-representation'].language : item['text-representation'].script) : null}</td>
-            <td>{releaseGroup ? typeRender(releaseGroup) : null}</td>
+            <td>{renderReleaseGroupTypes(releaseGroup)}</td>
             <td>{item.status}</td>
           </tr>
         );
