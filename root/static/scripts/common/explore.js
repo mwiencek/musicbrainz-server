@@ -7,7 +7,9 @@ const _ = require('lodash');
 const React = require('react');
 const ReactDOM = require('react-dom');
 
+const WithPager = require('../../../components/WithPager');
 const {isDateValid} = require('../edit/utility/dates');
+const getPager = require('../explore/utility/getPager');
 const ArtistCreditLink = require('./components/ArtistCreditLink');
 const EntityLink = require('./components/EntityLink');
 const {addColon, l, ln} = require('./i18n');
@@ -533,18 +535,6 @@ const QueryLink = ({searchURI}) => (
     {addColon(l('Query'))} <a href={searchURI}>{searchURI}</a>
   </div>
 );
-
-const ResultInfo = React.createClass({
-  render: function () {
-    return (
-      <div className="result-pane" id="result-info">
-        {(this.props.count === 0 || this.props.count) && <span>{ln('Found {count} result.', 'Found {count} results.', this.props.count, {count: this.props.count})}</span>}
-        <br />
-        {this.props.created && <span>{addColon(l('Created'))} {this.props.created}</span>}
-      </div>
-    );
-  }
-});
 
 const ListSelectField = React.createClass({
   getInitialState: function () {
@@ -1284,86 +1274,23 @@ const ResultPanel = React.createClass({
 
   render: function () {
     const context = this.context;
-    const {currentEntity, results, searchURI} = context;
+    const {currentEntity, results} = context;
     const data = currentEntity !== 'all' ? results[_.endsWith(currentEntity, 's') ? currentEntity : currentEntity + 's'] : null;
 
     return (
       <div>
         <Status status={status} fetchResults={this.props.fetchResults} fetchingFailed={context.fetchingFailed} />
-        {searchURI && results && <ResultInfo count={results.count} created={results.created} />}
-        {searchURI && results &&
-          <Pagination
-            count={results.count}
-            current={context.currentPage}
-            data={data}
-            getNextPage={this.props.getNextPage}
-            getPage={this.props.getPage}
-            getPreviousPage={this.props.getPreviousPage}
-            resultsValid={context.resultsValid}
-          />}
-        {searchURI && results && <Results data={data} currentEntity={currentEntity} isValid={context.resultsValid} />}
-        {searchURI && results && <QueryLink data={data} searchURI={context.searchURI} />}
-      </div>
-    );
-  }
-});
-
-const Pagination = React.createClass({
-  getInitialState: function () {
-    return {left: [], current: 1, right: []};
-  },
-
-  componentWillReceiveProps: function (nextProps) {
-    let templeft = []; // Set of page numbers on the left to the current page
-    let tempright = []; // Set of page numbers on the right to the current page
-    const totalPages = Math.ceil(nextProps.count / 25);
-
-    // -1 used to specify where truncation sign ... is needed
-    this.setState({current: nextProps.current}, () => {
-      if (totalPages < 7) { // No truncation needed
-        templeft = _.range(1, this.state.current);
-        tempright = _.range(this.state.current + 1, totalPages + 1);
-      } else if (this.state.current < 6) { // Truncation on the right side
-        templeft = _.range(1, this.state.current);
-        tempright = _.range(this.state.current + 1, this.state.current + 5);
-        tempright = tempright.concat([-1, totalPages]);
-      } else if (this.state.current > totalPages - 6) { // Truncation on the left side
-        templeft = [1, -1];
-        templeft = templeft.concat(_.range(this.state.current - 4, this.state.current));
-        tempright = _.range(this.state.current + 1, totalPages + 1);
-      } else { // Truncation on both sides
-        templeft = [1, -1];
-        templeft = templeft.concat(_.range(this.state.current - 4, this.state.current));
-        tempright = _.range(this.state.current + 1, this.state.current + 5);
-        tempright = tempright.concat([-1, totalPages]);
-      }
-
-      this.setState({left: templeft, right: tempright});
-    });
-  },
-
-  render: function () {
-    const props = this.props;
-    return (
-      <div className="result-pane" id="pagination">
-        {props.data && (
-          <nav>
-            <span>{l('Showing page {pageno} of {totalpages}.', {pageno: props.current, totalpages: Math.ceil(props.count / 25) === 0 ? 1 : Math.ceil(props.count / 25)})}</span>
-            <ul className="pagination">
-              <li>{props.current === 1 || !props.resultsValid || props.count === 0 ? <span>{l('Previous')}</span> : <a href="#" className="previous-page" onClick={props.getPreviousPage}>{l('Previous')}</a>}</li>
-              <li className="separator"></li>
-              {this.state.left.map((item, idx) => {
-                return item < 0 ? <li key={idx}><span>...</span></li> : !props.resultsValid ? <li key={idx}><span>{item}</span></li> : <li key={idx}><a href="#" onClick={_.bind(props.getPage, this, item)}>{item}</a></li>;
-              }, this)}
-              {!props.resultsValid ? <li><span className="sel">{this.state.current}</span></li> : <li><a href="#" className="sel" onClick={_.bind(props.getPage, this, this.state.current)}><strong>{this.state.current}</strong></a></li>}
-              {this.state.right.map((item, idx) => {
-                return item < 0 ? <li key={idx}><span>...</span></li> : !props.resultsValid ? <li key={idx}><span>{item}</span></li> : <li key={idx}><a href="#" onClick={_.bind(props.getPage, this, item)}>{item}</a></li>;
-              }, this)}
-              <li className="separator"></li>
-              <li>{props.current === Math.ceil(props.count / 25) || !props.resultsValid || props.count === 0 ? <span>{l('Next')}</span> : <a href="#" className="next-page" onClick={props.getNextPage}>{l('Next')}</a>}</li>
-            </ul>
-          </nav>)
-        }
+        <If condition={context.searchURI && results.count}>
+          <WithPager
+            onPageClick={this.props.getPage}
+            pager={getPager({currentPage: context.currentPage, entriesPerPage: 25, totalEntries: results.count})}
+            query={context.query}
+            search={true}
+          >
+            <Results data={data} currentEntity={currentEntity} isValid={context.resultsValid} />
+            <QueryLink searchURI={context.searchURI} />
+          </WithPager>
+        </If>
       </div>
     );
   }
@@ -1419,17 +1346,8 @@ const Content = React.createClass({
     });
   },
 
-  getNextPage: function (event) {
-    this.getPage(this.state.currentPage + 1, event);
-  },
-
-  getPreviousPage: function (event) {
-    this.getPage(this.state.currentPage - 1, event);
-  },
-
-  getPage: function (item, event) {
-    event.preventDefault();
-    this.setState({resultsValid: false, currentPage: item}, () => {
+  getPage: function (page) {
+    this.setState({resultsValid: false, currentPage: page}, () => {
       this.fetchResults();
     });
   },
@@ -1599,9 +1517,7 @@ const Content = React.createClass({
           <ResultPanel
             clearResults={this.clearResults}
             fetchResults={this.fetchResults}
-            getNextPage={this.getNextPage}
             getPage={this.getPage}
-            getPreviousPage={this.getPreviousPage}
           />
         </div>
       </div>
