@@ -9,6 +9,7 @@ const ReactDOM = require('react-dom');
 
 const WithPager = require('../../../components/WithPager');
 const AreaResults = require('../../../search/components/AreaResults');
+const ArtistResults = require('../../../search/components/ArtistResults');
 const {isDateValid} = require('../edit/utility/dates');
 const getPager = require('../explore/utility/getPager');
 const ArtistCreditLink = require('./components/ArtistCreditLink');
@@ -375,44 +376,6 @@ const EventResults = (props) => (
   </table>
 );
 
-const ArtistResults = (props) => (
-  <table className="tbl">
-    <thead>
-      <tr>
-        <th>{l('Score')}</th>
-        <th>{l('Name')}</th>
-        <th>{l('Sort Name')}</th>
-        <th>{l('Type')}</th>
-        <th>{l('Gender')}</th>
-        <th>{l('Area')}</th>
-        <th>{l('Begin')}</th>
-        <th>{l('Begin Area')}</th>
-        <th>{l('End')}</th>
-        <th>{l('End Area')}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {props.results.map(function (item, i) {
-        return (
-          <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
-
-            <td>{item.score}</td>
-            <td>{wsEntityLink(item, 'artist')}</td>
-            <td>{item['sort-name'] ? item['sort-name'] : null}</td>
-            <td>{item.type ? item.type : null}</td>
-            <td>{item.gender ? item.gender : null}</td>
-            <td>{item.area ? <a href={"/area/" + item.area.id}><bdi>{item.area.name}</bdi></a> : null}</td>
-            <td>{item['life-span'] ? item['life-span'].begin : null}</td>
-            <td>{item['begin-area'] ? <a href={"/area/" + item['begin-area'].id}><bdi>{item['begin-area'].name}</bdi></a> : null}</td>
-            <td>{item['life-span'] ? item['life-span'].end : null}</td>
-            <td>{item['end-area'] ? <a href={"/area/" + item['end-area'].id}><bdi>{item['end-area'].name}</bdi></a> : null}</td>
-          </tr>
-          );
-      })}
-    </tbody>
-  </table>
-);
-
 const LabelResults = (props) => (
   <table className="tbl">
     <thead>
@@ -454,6 +417,9 @@ const Results = (props) => {
         <When condition={currentEntity === 'area'}>
           <AreaResults {...props} />
         </When>
+        <When condition={currentEntity === 'artist'}>
+          <ArtistResults {...props} />
+        </When>
         <Otherwise>
           <WithPager
             onPageClick={props.onPageClick}
@@ -461,7 +427,6 @@ const Results = (props) => {
             query={props.query}
             search={props.search}
           >
-            {(currentEntity === 'artist') && <ArtistResults {...props} />}
             {(currentEntity === 'event') && <EventResults {...props} />}
             {(currentEntity === 'instrument') && <InstrumentResults {...props} />}
             {(currentEntity === 'label') && <LabelResults {...props} />}

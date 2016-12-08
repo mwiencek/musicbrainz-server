@@ -53,6 +53,23 @@ function cleanWebServiceData(data) {
   return clean;
 }
 
+function cleanLifeSpan(data, target) {
+  const lifeSpan = data['life-span'];
+  if (lifeSpan) {
+    target.begin_date = parseDate(lifeSpan.begin || '');
+    target.begin_date.toString = formatDate.bind(null, target.begin_date);
+    target.end_date = parseDate(lifeSpan.end || '');
+    target.end_date.toString = formatDate.bind(null, target.end_date);
+    target.ended = !!lifeSpan.ended;
+  }
+}
+
+function cleanType(data, target) {
+  if (data.type) {
+    target.type = {name: data.type, l_name: l(data.type)};
+  }
+}
+
 function cleanArea(data) {
   const area = cleanWebServiceData(data);
 
@@ -63,20 +80,36 @@ function cleanArea(data) {
   area.iso_3166_2_codes = data['iso-3166-2-codes'] || [];
   area.iso_3166_3_codes = data['iso-3166-3-codes'] || [];
 
-  if (data.type) {
-    area.type = {name: data.type, l_name: l(data.type)};
-  }
-
-  const lifeSpan = data['life-span'];
-  if (lifeSpan) {
-    area.begin_date = parseDate(lifeSpan.begin || '');
-    area.begin_date.toString = formatDate.bind(null, area.begin_date);
-    area.end_date = parseDate(lifeSpan.end || '');
-    area.end_date.toString = formatDate.bind(null, area.end_date);
-    area.ended = !!lifeSpan.ended;
-  }
+  cleanLifeSpan(data, area);
+  cleanType(data, area);
 
   return area;
+}
+
+function cleanArtist(data) {
+  const artist = cleanWebServiceData(data);
+
+  artist.entity_type = 'area';
+  artist.entityType = 'area';
+
+  cleanLifeSpan(data, artist);
+  cleanType(data, artist);
+
+  let gender = data.gender;
+  if (gender) {
+    // XXX The search server returns the gender name as lower case.
+    gender = _.capitalize(gender);
+    artist.gender = {name: gender, l_name: l(gender)};
+  }
+
+  ['area', 'begin-area', 'end-area'].forEach(function (key) {
+    const areaData = data[key];
+    if (areaData) {
+      artist[_.snakeCase(key)] = cleanArea(areaData);
+    }
+  });
+
+  return artist;
 }
 
 function cleanResult(cleanEntity, data) {
@@ -86,7 +119,11 @@ function cleanResult(cleanEntity, data) {
 function cleanWebServiceResults(results, entityType) {
   switch (entityType) {
     case 'area':
-      return results.map(cleanResult.bind(null, cleanArea));
+    case 'artist':
+      return results.map(cleanResult.bind(
+        null,
+        eval('clean' + _.capitalize(entityType))
+      ));
     default:
       return results;
   }
