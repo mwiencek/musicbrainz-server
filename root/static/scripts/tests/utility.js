@@ -6,6 +6,7 @@
 const test = require('tape');
 
 const formatTrackLength = require('../common/utility/formatTrackLength');
+const parseDate = require('../common/utility/parseDate');
 const dates = require('../edit/utility/dates');
 
 test('formatTrackLength', function (t) {
@@ -38,7 +39,7 @@ test('parseDate', function (t) {
     ];
 
     $.each(parseDateTests, function (i, test) {
-        var result = dates.parseDate(test.date);
+        var result = parseDate(test.date);
         t.deepEqual(result, test.expected, test.date);
     });
 });

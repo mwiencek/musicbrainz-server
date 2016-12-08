@@ -3,6 +3,8 @@
 // Licensed under the GPL version 2, or (at your option) any later version:
 // http://www.gnu.org/licenses/gpl-2.0.txt
 
+const formatDate = require('./formatDate');
+
 /* There's also a formatDatePeriod function in
  * root/static/scripts/edit/utility/dates.js, which expects date objects
  * containing separate fields for the year, month, and day. Which is useful
@@ -12,6 +14,10 @@
  */
 function formatDatePeriod(entity) {
   let {begin_date, end_date, ended} = entity;
+
+  // If these are objects, invoke their toString() methods.
+  begin_date = String(begin_date || '');
+  end_date = String(end_date || '');
 
   if (!begin_date && !end_date) {
     return ended ? l(' \u2013 ????') : '';

@@ -66,8 +66,8 @@ class AreaDisambiguation extends React.Component {
     }
 
     let comment;
-    let beginYear = area.begin_date.replace(leadingInt, '$1');
-    let endYear = area.end_date.replace(leadingInt, '$1');
+    let beginYear = String(area.begin_date).replace(leadingInt, '$1');
+    let endYear = String(area.end_date).replace(leadingInt, '$1');
 
     if (beginYear && endYear) {
       comment = l('historical, {begin}-{end}', {begin: beginYear, end: endYear});

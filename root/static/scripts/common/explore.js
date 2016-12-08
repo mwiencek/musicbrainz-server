@@ -8,6 +8,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 
 const WithPager = require('../../../components/WithPager');
+const AreaResults = require('../../../search/components/AreaResults');
 const {isDateValid} = require('../edit/utility/dates');
 const getPager = require('../explore/utility/getPager');
 const ArtistCreditLink = require('./components/ArtistCreditLink');
@@ -15,7 +16,11 @@ const EntityLink = require('./components/EntityLink');
 const {addColon, l, ln} = require('./i18n');
 const {artistCreditFromArray} = require('./immutable-entities');
 const formatTrackLength = require('./utility/formatTrackLength');
-const {cleanArtistCredit, cleanWebServiceData} = require('./utility/cleanWebServiceData');
+const {
+    cleanArtistCredit,
+    cleanWebServiceData,
+    cleanWebServiceResults,
+  } = require('./utility/cleanWebServiceData');
 const {escapeLuceneValue, constructLuceneFieldConjunction} = require('./utility/search');
 
 const COMMON_TAGS = [
@@ -85,7 +90,7 @@ const ReleaseGroupResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -122,7 +127,7 @@ const RecordingResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -151,41 +156,6 @@ const RecordingResults = (props) => (
   </table>
 );
 
-const AreaResults = (props) => (
-  <table className="tbl">
-    <thead>
-      <tr>
-        <th>{l('Score')}</th>
-        <th>{l('Name')}</th>
-        <th>{l('Type')}</th>
-        <th>{l('Code')}</th>
-        <th>{l('Begin')}</th>
-        <th>{l('End')}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {props.data.map(function (item, i) {
-        return (
-          <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
-            <td>{item.score}</td>
-            <td>{wsEntityLink(item, 'area')}</td>
-            <td>{item.type}</td>
-            <td>
-              <span>
-                {item['iso-3166-1-codes'] && item['iso-3166-1-codes'].map(function (code, i) {
-                  return i !== (item['iso-3166-1-codes'].length - 1) ? code + ', ' : code;
-                })}
-              </span>
-            </td>
-            <td>{item['life-span'] ? item['life-span'].begin : null}</td>
-            <td>{item['life-span'] ? item['life-span'].end : null}</td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-);
-
 const PlaceResults = (props) => (
   <table className="tbl">
     <thead>
@@ -200,7 +170,7 @@ const PlaceResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -227,7 +197,7 @@ const SeriesResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -251,7 +221,7 @@ const InstrumentResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -285,7 +255,7 @@ const ReleaseResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         const releaseGroup = item['release-group'];
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
@@ -329,7 +299,7 @@ const WorkResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -365,7 +335,7 @@ const EventResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -422,7 +392,7 @@ const ArtistResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
 
@@ -457,7 +427,7 @@ const LabelResults = (props) => (
       </tr>
     </thead>
     <tbody>
-      {props.data.map(function (item, i) {
+      {props.results.map(function (item, i) {
         return (
           <tr className={(i + 1) % 2 === 0 ? 'even' : 'odd'} key={i}>
             <td>{item.score}</td>
@@ -477,21 +447,33 @@ const LabelResults = (props) => (
 );
 
 const Results = (props) => {
-  const {currentEntity, data, isValid} = props;
-  const commonProps = {currentEntity, data, isValid};
+  const {currentEntity, isValid} = props;
   return (
     <div className={isValid ? "result-pane" : "result-pane fade"} id="results">
-      {data && (currentEntity === 'release-group') && <ReleaseGroupResults {...commonProps} />}
-      {data && (currentEntity === 'recording') && <RecordingResults {...commonProps} />}
-      {data && (currentEntity === 'area') && <AreaResults {...commonProps} />}
-      {data && (currentEntity === 'place') && <PlaceResults {...commonProps} />}
-      {data && (currentEntity === 'series') && <SeriesResults {...commonProps} />}
-      {data && (currentEntity === 'instrument') && <InstrumentResults {...commonProps} />}
-      {data && (currentEntity === 'release') && <ReleaseResults {...commonProps} />}
-      {data && (currentEntity === 'work') && <WorkResults {...commonProps} />}
-      {data && (currentEntity === 'event') && <EventResults {...commonProps} />}
-      {data && (currentEntity === 'artist') && <ArtistResults {...commonProps} />}
-      {data && (currentEntity === 'label') && <LabelResults {...commonProps} />}
+      <Choose>
+        <When condition={currentEntity === 'area'}>
+          <AreaResults {...props} />
+        </When>
+        <Otherwise>
+          <WithPager
+            onPageClick={props.onPageClick}
+            pager={props.pager}
+            query={props.query}
+            search={props.search}
+          >
+            {(currentEntity === 'artist') && <ArtistResults {...props} />}
+            {(currentEntity === 'event') && <EventResults {...props} />}
+            {(currentEntity === 'instrument') && <InstrumentResults {...props} />}
+            {(currentEntity === 'label') && <LabelResults {...props} />}
+            {(currentEntity === 'place') && <PlaceResults {...props} />}
+            {(currentEntity === 'recording') && <RecordingResults {...props} />}
+            {(currentEntity === 'release') && <ReleaseResults {...props} />}
+            {(currentEntity === 'release-group') && <ReleaseGroupResults {...props} />}
+            {(currentEntity === 'series') && <SeriesResults {...props} />}
+            {(currentEntity === 'work') && <WorkResults {...props} />}
+          </WithPager>
+        </Otherwise>
+      </Choose>
     </div>
   );
 };
@@ -1279,17 +1261,26 @@ const ResultPanel = React.createClass({
 
     return (
       <div>
-        <Status status={status} fetchResults={this.props.fetchResults} fetchingFailed={context.fetchingFailed} />
-        <If condition={context.searchURI && results.count}>
-          <WithPager
+        <Status
+          fetchingFailed={context.fetchingFailed}
+          fetchResults={this.props.fetchResults}
+          status={status}
+        />
+        <If condition={context.searchURI}>
+          <Results
+            currentEntity={currentEntity}
+            isValid={context.resultsValid}
             onPageClick={this.props.getPage}
-            pager={getPager({currentPage: context.currentPage, entriesPerPage: 25, totalEntries: results.count})}
+            pager={getPager({
+              currentPage: context.currentPage,
+              entriesPerPage: 25,
+              totalEntries: results.count,
+            })}
             query={context.query}
+            results={cleanWebServiceResults(data || [], _.snakeCase(currentEntity))}
             search={true}
-          >
-            <Results data={data} currentEntity={currentEntity} isValid={context.resultsValid} />
-            <QueryLink searchURI={context.searchURI} />
-          </WithPager>
+          />
+          <QueryLink searchURI={context.searchURI} />
         </If>
       </div>
     );
