@@ -24,11 +24,10 @@ const getCookie = require('./static/scripts/common/utility/getCookie');
 
 const REDIS_ARGS = DBDefs.DATASTORE_REDIS_ARGS;
 const redisClient = redis.createClient({
-  url: 'redis://' + REDIS_ARGS.server,
-  prefix: REDIS_ARGS.namespace,
+  url: 'redis://' + REDIS_ARGS.redis_new_args.server,
+  prefix: REDIS_ARGS.prefix,
   retry_strategy: function (options) {
-    const oneMinute = 60 * 1000; // ms
-    if (options.total_retry_time < oneMinute) {
+    if (options.total_retry_time < (REDIS_ARGS.redis_new_args.reconnect * 1000)) {
       return 1;
     }
   },

@@ -226,8 +226,7 @@ sub begin : Private
         }
 
         my ($notes_viewed, $notes_updated);
-        ($alert, $alert_mtime, $notes_viewed, $notes_updated) =
-            @{$redis->get_multi(@cache_keys)}{@cache_keys};
+        ($alert, $alert_mtime, $notes_viewed, $notes_updated) = $redis->mget(@cache_keys);
 
         if ($notes_updated && (!defined($notes_viewed) || $notes_updated > $notes_viewed)) {
             $new_edit_notes = 1;
