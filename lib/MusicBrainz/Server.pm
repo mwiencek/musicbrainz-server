@@ -360,12 +360,7 @@ before dispatch => sub {
 };
 
 after dispatch => sub {
-    my ($self) = @_;
-
-    my $c = $self->model('MB')->context;
-    $c->connector->disconnect;
-    $c->store->_connection->quit;
-    $c->cache->_connection->quit;
+    shift->model('MB')->context->connector->disconnect;
 };
 
 # Timeout long running requests
