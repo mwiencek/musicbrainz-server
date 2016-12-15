@@ -11,7 +11,6 @@ const fs = require('fs');
 const http = require('http');
 const _ = require('lodash');
 const redis = require('redis');
-const reload = require('require-reload')(require);
 const path = require('path');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -19,27 +18,21 @@ const sliced = require('sliced');
 const URL = require('url');
 
 const gettext = require('./server/gettext');
-// Reloaded on HUP.
-let DBDefs = reload('./static/scripts/common/DBDefs');
+const DBDefs = require('./static/scripts/common/DBDefs');
 const i18n = require('./static/scripts/common/i18n');
 const getCookie = require('./static/scripts/common/utility/getCookie');
 
-function createRedisClient() {
-  const REDIS_ARGS = DBDefs.DATASTORE_REDIS_ARGS;
-  return redis.createClient({
-    url: 'redis://' + REDIS_ARGS.server,
-    prefix: REDIS_ARGS.namespace,
-    retry_strategy: function (options) {
-      const oneMinute = 60 * 1000; // ms
-      if (options.total_retry_time < oneMinute) {
-        return 1;
-      }
-    },
-  });
-}
-
-// Reloaded on HUP.
-let redisClient = createRedisClient();
+const REDIS_ARGS = DBDefs.DATASTORE_REDIS_ARGS;
+const redisClient = redis.createClient({
+  url: 'redis://' + REDIS_ARGS.server,
+  prefix: REDIS_ARGS.namespace,
+  retry_strategy: function (options) {
+    const oneMinute = 60 * 1000; // ms
+    if (options.total_retry_time < oneMinute) {
+      return 1;
+    }
+  },
+});
 
 function pathFromRoot(fpath) {
   return path.resolve(__dirname, '../', fpath);
@@ -168,9 +161,6 @@ http.createServer(function (req, res) {
   function hup() {
     clearRequireCache();
     gettext.clearHandles();
-    DBDefs = reload('./static/scripts/common/DBDefs');
-    redisClient.quit();
-    redisClient = createRedisClient();
   }
 
   process.on('SIGINT', cleanup);
