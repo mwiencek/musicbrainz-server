@@ -8,23 +8,37 @@ use Scalar::Util qw( looks_like_number );
 
 requires '_type';
 
-sub _cache_id {
-    my ($self) = @_;
+sub _id_cache_info {
+    my ($self, $prop) = @_;
 
     my $type = $self->_type;
     if ($type && (my $entity_properties = $ENTITIES{$type})) {
         if (exists $entity_properties->{cache}) {
-            return $entity_properties->{cache}{id};
+            return $entity_properties->{cache}{$prop};
         }
     }
 }
+
+has _id_cache_id => (
+    is => 'ro',
+    isa => 'Maybe[Str]',
+    lazy => 1,
+    default => sub { shift->_id_cache_info('id') },
+);
+
+has _id_cache_prefix => (
+    is => 'ro',
+    isa => 'Maybe[Str]',
+    lazy => 1,
+    default => sub { shift->_id_cache_info('prefix') },
+);
 
 around get_by_ids => sub {
     my ($orig, $self, @ids) = @_;
     return {} unless grep { defined && $_ } @ids;
     my %ids = map { $_ => 1 } @ids;
-    my @keys = map { $self->_type . ':' . $_ } keys %ids;
-    my $cache = $self->c->cache($self->_type);
+    my @keys = map { $self->_id_cache_prefix . ':' . $_ } keys %ids;
+    my $cache = $self->c->cache($self->_id_cache_prefix);
     my %data = %{$cache->get_multi(@keys)};
     my %result;
     foreach my $key (keys %data) {
@@ -61,8 +75,8 @@ after merge => sub {
 sub _create_cache_entries {
     my ($self, $data) = @_;
 
-    my $cache_id = $self->_cache_id;
-    my $cache_prefix = $self->_type . ':';
+    my $cache_id = $self->_id_cache_id;
+    my $cache_prefix = $self->_id_cache_prefix . ':';
     my @entries;
     for my $id (keys %{$data}) {
         # MBS-7241
@@ -91,8 +105,8 @@ sub _delete_from_cache {
     @ids = uniq grep { defined } @ids;
     return unless @ids;
 
-    my $cache_id = $self->_cache_id;
-    my $cache_prefix = $self->_type . ':';
+    my $cache_id = $self->_id_cache_id;
+    my $cache_prefix = $self->_id_cache_prefix . ':';
     my @keys;
 
     for my $id (@ids) {
@@ -103,7 +117,7 @@ sub _delete_from_cache {
         push @keys, $cache_prefix . $id;
     }
 
-    my $cache = $self->c->cache($self->_type);
+    my $cache = $self->c->cache($self->_id_cache_prefix);
     my $method = @keys > 1 ? 'delete_multi' : 'delete';
     $cache->$method(@keys);
 }

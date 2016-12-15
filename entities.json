@@ -13,7 +13,8 @@
             "edit_type": 85
         },
         "cache": {
-            "id": 1
+            "id": 1,
+            "prefix": "area"
         },
         "collections": true,
         "custom_tabs": ["artists", "labels", "releases", "places", "users"],
@@ -40,14 +41,16 @@
     },
     "area_alias_type": {
         "cache": {
-            "id": 39
+            "id": 39,
+            "prefix": "area_alias_type"
         },
         "model": "AreaAliasType",
         "table": "area_alias_type"
     },
     "area_type": {
         "cache": {
-            "id": 2
+            "id": 2,
+            "prefix": "area_type"
         },
         "model": "AreaType"
     },
@@ -62,7 +65,8 @@
             "edit_type": 5
         },
         "cache": {
-            "id": 3
+            "id": 3,
+            "prefix": "artist"
         },
         "collections": true,
         "custom_tabs": ["releases", "recordings", "works", "events"],
@@ -104,20 +108,23 @@
     },
     "artist_alias_type": {
         "cache": {
-            "id": 40
+            "id": 40,
+            "prefix": "artist_alias_type"
         },
         "model": "ArtistAliasType",
         "table": "artist_alias_type"
     },
     "artist_credit": {
         "cache": {
-            "id": 4
+            "id": 4,
+            "prefix": "ac"
         },
         "model": "ArtistCredit"
     },
     "artist_type": {
         "cache": {
-            "id": 5
+            "id": 5,
+            "prefix": "artist_type"
         },
         "model": "ArtistType"
     },
@@ -139,13 +146,15 @@
     },
     "collection_type": {
         "cache": {
-            "id": 6
+            "id": 6,
+            "prefix": "collection_type"
         },
         "model": "CollectionType"
     },
     "cover_art_type": {
         "cache": {
-            "id": 7
+            "id": 7,
+            "prefix": "cat"
         },
         "model": "CoverArtType"
     },
@@ -168,7 +177,8 @@
             "edit_type": 154
         },
         "cache": {
-            "id": 8
+            "id": 8,
+            "prefix": "event"
         },
         "collections": true,
         "date_period": true,
@@ -196,14 +206,16 @@
     },
     "event_alias_type": {
         "cache": {
-            "id": 41
+            "id": 41,
+            "prefix": "event_alias_type"
         },
         "model": "EventAliasType",
         "table": "event_alias_type"
     },
     "event_type": {
         "cache": {
-            "id": 9
+            "id": 9,
+            "prefix": "event_type"
         },
         "model": "EventType"
     },
@@ -212,7 +224,8 @@
     },
     "gender": {
         "cache": {
-            "id": 10
+            "id": 10,
+            "prefix": "g"
         },
         "model": "Gender"
     },
@@ -227,7 +240,8 @@
             "edit_type": 135
         },
         "cache": {
-            "id": 11
+            "id": 11,
+            "prefix": "instrument"
         },
         "collections": true,
         "custom_tabs": ["releases", "recordings"],
@@ -254,14 +268,16 @@
     },
     "instrument_alias_type": {
         "cache": {
-            "id": 42
+            "id": 42,
+            "prefix": "instrument_alias_type"
         },
         "model": "InstrumentAliasType",
         "table": "instrument_alias_type"
     },
     "instrument_type": {
         "cache": {
-            "id": 12
+            "id": 12,
+            "prefix": "instrument_type"
         },
         "model": "InstrumentType"
     },
@@ -282,7 +298,8 @@
             "edit_type": 15
         },
         "cache": {
-            "id": 13
+            "id": 13,
+            "prefix": "label"
         },
         "collections": true,
         "date_period": true,
@@ -323,46 +340,53 @@
     },
     "label_alias_type": {
         "cache": {
-            "id": 43
+            "id": 43,
+            "prefix": "label_alias_type"
         },
         "model": "LabelAliasType",
         "table": "label_alias_type"
     },
     "label_type": {
         "cache": {
-            "id": 14
+            "id": 14,
+            "prefix": "label_type"
         },
         "model": "LabelType"
     },
     "language": {
         "cache": {
-            "id": 15
+            "id": 15,
+            "prefix": "lng"
         },
         "model": "Language"
     },
     "link": {
         "cache": {
-            "id": 16
+            "id": 16,
+            "prefix": "link"
         },
         "model": "Link"
     },
     "link_attribute_type": {
         "cache": {
-            "id": 17
+            "id": 17,
+            "prefix": "linkattrtype"
         },
         "last_updated_column": true,
         "model": "LinkAttributeType"
     },
     "link_type": {
         "cache": {
-            "id": 18
+            "id": 18,
+            "prefix": "linktype"
         },
         "last_updated_column": true,
         "model": "LinkType"
     },
     "medium_format": {
         "cache": {
-            "id": 19
+            "id": 19,
+            "prefix": "mf"
         },
         "model": "MediumFormat"
     },
@@ -377,7 +401,8 @@
             "edit_type": 65
         },
         "cache": {
-            "id": 20
+            "id": 20,
+            "prefix": "place"
         },
         "collections": true,
         "custom_tabs": ["events", "performances", "map"],
@@ -406,14 +431,16 @@
     },
     "place_alias_type": {
         "cache": {
-            "id": 44
+            "id": 44,
+            "prefix": "place_alias_type"
         },
         "model": "PlaceAliasType",
         "table": "place_alias_type"
     },
     "place_type": {
         "cache": {
-            "id": 21
+            "id": 21,
+            "prefix": "place_type"
         },
         "model": "PlaceType"
     },
@@ -429,7 +456,8 @@
         },
         "artist_credits": true,
         "cache": {
-            "id": 22
+            "id": 22,
+            "prefix": "recording"
         },
         "collections": true,
         "custom_tabs": ["fingerprints"],
@@ -455,7 +483,8 @@
     },
     "recording_alias_type": {
         "cache": {
-            "id": 45
+            "id": 45,
+            "prefix": "recording_alias_type"
         },
         "model": "RecordingAliasType",
         "table": "recording_alias_type"
@@ -472,7 +501,8 @@
         },
         "artist_credits": true,
         "cache": {
-            "id": 23
+            "id": 23,
+            "prefix": "release"
         },
         "collections": true,
         "custom_tabs": ["discids", "cover_art"],
@@ -498,7 +528,8 @@
     },
     "release_alias_type": {
         "cache": {
-            "id": 46
+            "id": 46,
+            "prefix": "release_alias_type"
         },
         "model": "ReleaseAliasType",
         "table": "release_alias_type"
@@ -515,7 +546,8 @@
         },
         "artist_credits": true,
         "cache": {
-            "id": 24
+            "id": 24,
+            "prefix": "release_group"
         },
         "collections": true,
         "disambiguation": true,
@@ -548,38 +580,44 @@
     },
     "release_group_alias_type": {
         "cache": {
-            "id": 47
+            "id": 47,
+            "prefix": "release_group_alias_type"
         },
         "model": "ReleaseGroupAliasType",
         "table": "release_group_alias_type"
     },
     "release_group_secondary_type": {
         "cache": {
-            "id": 25
+            "id": 25,
+            "prefix": "release_group_secondary_type"
         },
         "model": "ReleaseGroupSecondaryType"
     },
     "release_group_type": {
         "cache": {
-            "id": 26
+            "id": 26,
+            "prefix": "release_group_type"
         },
         "model": "ReleaseGroupType"
     },
     "release_packaging": {
         "cache": {
-            "id": 27
+            "id": 27,
+            "prefix": "rp"
         },
         "model": "ReleasePackaging"
     },
     "release_status": {
         "cache": {
-            "id": 28
+            "id": 28,
+            "prefix": "rs"
         },
         "model": "ReleaseStatus"
     },
     "script": {
         "cache": {
-            "id": 29
+            "id": 29,
+            "prefix": "scr"
         },
         "model": "Script"
     },
@@ -594,7 +632,8 @@
             "edit_type": 144
         },
         "cache": {
-            "id": 30
+            "id": 30,
+            "prefix": "series"
         },
         "collections": true,
         "disambiguation": true,
@@ -625,26 +664,30 @@
     },
     "series_alias_type": {
         "cache": {
-            "id": 48
+            "id": 48,
+            "prefix": "series_alias_type"
         },
         "model": "SeriesAliasType",
         "table": "series_alias_type"
     },
     "series_ordering_type": {
         "cache": {
-            "id": 31
+            "id": 31,
+            "prefix": "series_ordering_type"
         },
         "model": "SeriesOrderingType"
     },
     "series_type": {
         "cache": {
-            "id": 32
+            "id": 32,
+            "prefix": "series_type"
         },
         "model": "SeriesType"
     },
     "tag": {
         "cache": {
-            "id": 33
+            "id": 33,
+            "prefix": "tag"
         },
         "model": "Tag"
     },
@@ -683,7 +726,8 @@
             "edit_type": 45
         },
         "cache": {
-            "id": 34
+            "id": 34,
+            "prefix": "work"
         },
         "collections": true,
         "disambiguation": true,
@@ -712,32 +756,37 @@
     },
     "work_alias_type": {
         "cache": {
-            "id": 49
+            "id": 49,
+            "prefix": "work_alias_type"
         },
         "model": "WorkAliasType",
         "table": "work_alias_type"
     },
     "work_attribute": {
         "cache": {
-            "id": 35
+            "id": 35,
+            "prefix": "workattr"
         },
         "model": "WorkAttribute"
     },
     "work_attribute_type": {
         "cache": {
-            "id": 36
+            "id": 36,
+            "prefix": "workattrtype"
         },
         "model": "WorkAttributeType"
     },
     "work_attribute_type_allowed_value": {
         "cache": {
-            "id": 37
+            "id": 37,
+            "prefix": "watav"
         },
         "model": "WorkAttributeTypeAllowedValue"
     },
     "work_type": {
         "cache": {
-            "id": 38
+            "id": 38,
+            "prefix": "work_type"
         },
         "model": "WorkType"
     }

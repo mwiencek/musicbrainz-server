@@ -7,6 +7,8 @@ extends 'MusicBrainz::Server::Data::Entity';
 
 with 'MusicBrainz::Server::Data::Role::AliasType';
 
+sub _id_cache_prefix { 'recording_alias_type' }
+
 sub _table { 'recording_alias_type' }
 
 sub _type { 'recording_alias_type' }
