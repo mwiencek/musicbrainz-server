@@ -198,19 +198,31 @@ sub GOOGLE_CUSTOM_SEARCH { '' }
 # Cache Settings
 ################################################################################
 
+# MEMCACHED_SERVERS allows configuration of global memcached servers, if more
+# close configuration is not required
+sub MEMCACHED_SERVERS { return ['127.0.0.1:11211']; };
+
+# MEMCACHED_NAMESPACE allows configuration of a global memcached namespace, if
+# more close configuration is not required
+sub MEMCACHED_NAMESPACE { return 'MB:'; };
+
 # PLUGIN_CACHE_OPTIONS are the options configured for Plugin::Cache.  $c->cache
 # is provided by Plugin::Cache, and is required for HTTP Digest authentication
 # in the webservice (Catalyst::Authentication::Credential::HTTP).
+#
+# If you want to use something such as Memcached, the settings here should be
+# the same as the settings you use for the session store.
+#
 sub PLUGIN_CACHE_OPTIONS {
     my $self = shift;
     return {
-        class => 'MusicBrainz::Server::CacheWrapper::Redis',
-        server => '127.0.0.1:6379',
-        namespace => 'MB:Catalyst:',
+        class => "Cache::Memcached::Fast",
+        servers => $self->MEMCACHED_SERVERS(),
+        namespace => $self->MEMCACHED_NAMESPACE(),
     };
-}
+};
 
-# The caching options here relate to object caching in Redis - such as for
+# The caching options here relate to object caching in memcached - such as for
 # artists, releases, etc. in order to speed up queries. See below if you want
 # to disable caching.
 sub CACHE_MANAGER_OPTIONS {
@@ -218,10 +230,10 @@ sub CACHE_MANAGER_OPTIONS {
     my %CACHE_MANAGER_OPTIONS = (
         profiles => {
             external => {
-                class => 'MusicBrainz::Server::CacheWrapper::Redis',
+                class => 'Cache::Memcached::Fast',
                 options => {
-                    server => '127.0.0.1:6379',
-                    namespace => 'MB:',
+                    servers => $self->MEMCACHED_SERVERS(),
+                    namespace => $self->MEMCACHED_NAMESPACE()
                 },
             },
         },
@@ -231,25 +243,18 @@ sub CACHE_MANAGER_OPTIONS {
     return \%CACHE_MANAGER_OPTIONS
 }
 
-# Sets the TTL for entities stored in Redis, in seconds. On slave servers,
+# Sets the TTL for entities stored in memcached, in seconds. On slave servers,
 # this is set to 1 hour by default, to mitigate MBS-8726. On standalone
-# servers, this is set to 1 day; cache invalidation is already handled by the
-# server in that case, so keys may be evicted sooner, but an upper limit is
-# set in case the same Redis instance storing login sessions is being used
-# (where no memory limit should be in place). In production, where separate
-# Redis instances might be used to store sessions and cached entities, this
-# can be set to 0 if there's already a memory limit configured for Redis.
+# servers, this is set to 0 (meaning no expiration is set), because cache
+# invalidation is already handled by the server in that case.
 sub ENTITY_CACHE_TTL {
     return 3600 if shift->REPLICATION_TYPE == RT_SLAVE;
-    return 86400;
+    return 0;
 }
 
 ################################################################################
 # Sessions (advanced)
 ################################################################################
-
-# The session store holds user login sessions. Session::Store::MusicBrainz
-# uses DATASTORE_REDIS_ARGS to connect to and store sessions in Redis.
 
 sub SESSION_STORE { "Session::Store::MusicBrainz" }
 sub SESSION_STORE_ARGS { return {} }
@@ -275,7 +280,7 @@ sub DATASTORE_REDIS_ARGS {
             encoding => undef,
         }
     };
-}
+};
 
 ################################################################################
 # Session cookies
