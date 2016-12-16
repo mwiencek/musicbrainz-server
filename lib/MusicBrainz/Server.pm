@@ -11,6 +11,7 @@ use Moose::Util qw( does_role );
 use MusicBrainz::Server::Log qw( logger );
 use POSIX qw(SIGALRM);
 use Sys::Hostname;
+use Time::HiRes;
 use Try::Tiny;
 use URI;
 use aliased 'MusicBrainz::Server::Translation';
@@ -388,7 +389,19 @@ around dispatch => sub {
         POSIX::sigaction(SIGALRM, $action);
     }
 
+    my $begin_time = Time::HiRes::time;
     $c->$orig(@args);
+    my $end_time = Time::HiRes::time;
+    my $total = $end_time - $begin_time;
+
+    my $view_begin_time = $c->stash->{req_view_begin_time};
+    my $view_end_time = $c->stash->{req_view_end_time};
+    if (defined $view_begin_time && defined $view_end_time) {
+        my $before_view = $view_begin_time - $begin_time;
+        my $view_total = $view_end_time - $view_begin_time;
+        my $after_view = $end_time - $view_end_time;
+        $c->log->debug('Timings: before_view=' . $before_view . ' view=' . $view_total . ' after_view=' . $after_view . ' total=' . $total . ' url=' . $c->req->uri);
+    }
 
     alarm(0);
 };
