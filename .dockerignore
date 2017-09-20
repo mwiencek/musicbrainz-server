@@ -1,5 +1,6 @@
 .dockerignore
 .DS_Store
+.travis.yml
 blib/
 cover_db/
 Dockerfile

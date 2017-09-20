@@ -1,0 +1,18 @@
+sudo: required
+
+services:
+  - docker
+
+install: true
+
+before_script:
+  - ./travis/build.sh
+
+script:
+  - docker exec musicbrainz-tests run_tests.sh
+
+after_success:
+  - ./travis/push_images.sh
+
+after_failure:
+  - ./travis/push_images.sh

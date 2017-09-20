@@ -56,5 +56,3 @@ copy_mb(`flow-typed/ flow-typed/')
 copy_mb(`script/ script/')
 copy_mb(`t/ t/')
 copy_mb(`.flowconfig .perlcriticrc ./')
-
-ENTRYPOINT ["run_tests.sh"]
