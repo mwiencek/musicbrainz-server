@@ -1,0 +1,27 @@
+sudo: required
+
+services:
+  - docker
+
+install: true
+
+before_script:
+  - make -C docker config
+  - CACHE_FROM=master;
+    if [[ "$TRAVIS_BRANCH" =~ ^(beta|production)$ ]]; then
+      CACHE_FROM=$TRAVIS_BRANCH;
+    fi;
+    export CACHE_FROM;
+    docker pull metabrainz/musicbrainz-test-database:$CACHE_FROM;
+    docker pull metabrainz/musicbrainz-tests:$CACHE_FROM;
+    docker-compose -f docker/docker-compose.tests.yml up -d --build
+
+script:
+  - docker exec musicbrainz-tests run_tests.sh
+
+after_success:
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_BRANCH" =~ ^(beta|master|production)$ ]]; then
+      docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+      docker push metabrainz/musicbrainz-test-database:$TRAVIS_BRANCH;
+      docker push metabrainz/musicbrainz-tests:$TRAVIS_BRANCH;
+    fi

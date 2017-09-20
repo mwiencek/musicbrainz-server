@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 
 services:
   html5-validator:
@@ -7,14 +7,19 @@ services:
 
   musicbrainz-test-database:
     build:
+      cache_from:
+        - metabrainz/musicbrainz-test-database:${CACHE_FROM:-master}
       context: ../
       dockerfile: docker/Dockerfile.test-database
     network_mode: bridge
 
   musicbrainz-tests:
     build:
+      cache_from:
+        - metabrainz/musicbrainz-tests:${CACHE_FROM:-master}
       context: ../
       dockerfile: docker/Dockerfile.tests
+    container_name: musicbrainz-tests
     links:
       - html5-validator
       - musicbrainz-redis-cache
