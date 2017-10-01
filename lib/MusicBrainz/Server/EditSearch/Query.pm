@@ -11,6 +11,7 @@ use MusicBrainz::Server::EditSearch::Predicate::ID;
 use MusicBrainz::Server::EditSearch::Predicate::Set;
 use MusicBrainz::Server::EditSearch::Predicate::Entity;
 use MusicBrainz::Server::EditSearch::Predicate::Editor;
+use MusicBrainz::Server::EditSearch::Predicate::EditorAccountAge;
 use MusicBrainz::Server::EditSearch::Predicate::EditorFlag;
 use MusicBrainz::Server::EditSearch::Predicate::VoteCount;
 use MusicBrainz::Server::EditSearch::Predicate::AppliedEdits;
@@ -34,6 +35,7 @@ my %field_map = (
     status => 'MusicBrainz::Server::EditSearch::Predicate::Set',
     vote_count => 'MusicBrainz::Server::EditSearch::Predicate::VoteCount',
     editor => 'MusicBrainz::Server::EditSearch::Predicate::Editor',
+    editor_account_age => 'MusicBrainz::Server::EditSearch::Predicate::EditorAccountAge',
     voter => 'MusicBrainz::Server::EditSearch::Predicate::Voter',
     release_language => 'MusicBrainz::Server::EditSearch::Predicate::ReleaseLanguage',
     release_quality => 'MusicBrainz::Server::EditSearch::Predicate::ReleaseQuality',
@@ -77,6 +79,17 @@ has auto_edit_filter => (
     isa => Maybe[Bool],
     is => 'ro',
     default => undef
+);
+
+has join => (
+    isa => ArrayRef[Str],
+    is => 'bare',
+    traits => ['Array'],
+    default => sub { ['JOIN edit_data ON edit.id = edit_data.edit'] },
+    handles => {
+        join => 'elements',
+        add_join => 'push',
+    },
 );
 
 has where => (
@@ -153,8 +166,8 @@ sub as_string {
         unless $self->order eq 'rand';
 
     return 'SELECT edit.*, edit_data.data ' .
-        'FROM edit JOIN edit_data ON edit.id = edit_data.edit ' .
-        'WHERE ' . $ae_predicate . ($self->negate ? 'NOT ' : '') . '(' .
+        'FROM edit ' . join(' ', $self->join) .
+        ' WHERE ' . $ae_predicate . ($self->negate ? 'NOT ' : '') . '(' .
             join(" $comb ", map { '(' . $_->[0] . ')' } $self->where) .
         ")
          $order

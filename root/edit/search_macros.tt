@@ -76,6 +76,8 @@
                predicate_editor_flag(field.field_name, field);
              CASE 'MusicBrainz::Server::EditSearch::Predicate::AppliedEdits';
                predicate_int(field.field_name, field);
+             CASE 'MusicBrainz::Server::EditSearch::Predicate::EditorAccountAge';
+               predicate_editor_account_age(field.field_name, field);
            END %]
         [% IF field.does('MusicBrainz::Server::EditSearch::Predicate::Role::User');
              predicate_user(field.field_name, field);
@@ -331,6 +333,21 @@
   </span>
 [% END %]
 
+[% MACRO predicate_editor_account_age(field, field_contents) WRAPPER wfield predicate="id" %]
+  [% operators([ [ '>', l('is more than') ],
+                 [ '<', l('is less than') ],
+                 ['BETWEEN', l('is between') ] ], field_contents) %]
+
+  <span style="display:none" class="arg">
+    <input type="text" name="args.0" value="[% html_escape(field_contents.argument(0)) %]" />
+  </span>
+
+  <span style="display:none" class="arg">
+    &#x2013;
+    <input type="text" name="args.1" value="[% html_escape(field_contents.argument(1)) %]" />
+  </span>
+[% END %]
+
 [% MACRO predicate_editor_flag(field, field_contents) WRAPPER wfield predicate="set" %]
   [% operators([ [ '=', l('is') ]
                  [ '!=', l('is not') ] ], field_contents) %]
@@ -384,6 +401,7 @@
                    [ 'label_area', l('Label Area') ]
                    [ 'release_country', l('Release Country') ]
                    [ 'link_type', l('Relationship Type') ],
+                   [ 'editor_account_age', l('Editor Account Age') ],
                    [ 'editor_flag', l('Editor Flag') ],
                    [ 'applied_edits', l('Applied Edit Count of Editor') ],
                    ] -%]
@@ -419,6 +437,7 @@
     [% predicate_link('label_area', undef, 'area') %]
     [% predicate_country('release_country') %]
     [% predicate_link_type('link_type') %]
+    [% predicate_editor_account_age('editor_account_age') %]
     [% predicate_editor_flag('editor_flag') %]
     [% predicate_int('applied_edits') %]
   </div>
