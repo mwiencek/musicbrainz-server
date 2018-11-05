@@ -529,7 +529,7 @@ const RE = MB.relationshipEditor = MB.relationshipEditor || {};
 
     fields.LinkAttribute.prototype.toJS = function () {
         var type = this.type;
-        var output = { type: { gid: type.gid } };
+        var output = { type: { gid: type.gid, id: type.id } };
 
         if (type.creditable) {
             output.credited_as = clean(this.creditedAs());

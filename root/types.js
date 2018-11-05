@@ -564,6 +564,7 @@ declare type LinkAttrT = {|
   +credited_as?: string,
   +text_value?: string,
   type: {|
+    +id: number,
     +gid: string,
   |},
   +typeID: number,
