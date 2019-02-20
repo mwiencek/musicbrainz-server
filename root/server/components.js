@@ -151,6 +151,7 @@ module.exports = {
   'components/ExpirationTime': require('../components/ExpirationTime'),
   'components/InstrumentsList': require('../components/InstrumentsList'),
   'components/LabelsList': require('../components/LabelsList'),
+  'components/PlacesList': require('../components/PlacesList'),
   'components/UserAccountTabs': require('../components/UserAccountTabs'),
   'edit/components/EditSidebar': require('../edit/components/EditSidebar'),
   'edit/components/EditSummary': require('../edit/components/EditSummary'),
