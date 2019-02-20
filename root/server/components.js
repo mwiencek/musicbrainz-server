@@ -149,6 +149,7 @@ module.exports = {
   'components/AreasList': require('../components/AreasList'),
   'components/EventsList': require('../components/EventsList'),
   'components/ExpirationTime': require('../components/ExpirationTime'),
+  'components/InstrumentsList': require('../components/InstrumentsList'),
   'components/LabelsList': require('../components/LabelsList'),
   'components/UserAccountTabs': require('../components/UserAccountTabs'),
   'edit/components/EditSidebar': require('../edit/components/EditSidebar'),
