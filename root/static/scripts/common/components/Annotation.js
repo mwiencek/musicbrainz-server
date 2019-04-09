@@ -21,14 +21,19 @@ import EditorLink from './EditorLink';
 
 type Props = {|
   +$c: CatalystContextT | SanitizedCatalystContextT,
-  annotation: ?{...AnnotationT, editor: SanitizedEditorT},
+  +annotation: ?$ReadOnly<{...AnnotationT, editor: ?SanitizedEditorT}>,
   +collapse?: boolean,
-  entity: $ReadOnly<MinimalCoreEntityT & {
-    +latest_annotation?: {...AnnotationT},
+  +entity: $ReadOnly<MinimalCoreEntityT & {
+    +latest_annotation?: AnnotationT,
   }>,
   +numberOfRevisions: number,
   +showChangeLog?: boolean,
 |};
+
+type WritableProps = {
+  annotation: ?{...AnnotationT, editor: ?SanitizedEditorT},
+  entity: {...MinimalCoreEntityT, latest_annotation?: AnnotationT},
+};
 
 const Annotation = ({
   $c,
@@ -106,7 +111,7 @@ export default withCatalystContext(
   hydrate<Props>('annotation', Annotation, function (props) {
     const entity = props.entity;
 
-    return mutate<Props, _>(props, newProps => {
+    return mutate<WritableProps, Props>(props, newProps => {
       const annotation = newProps.annotation;
 
       // editor data is usually missing on mirror server

@@ -89,7 +89,7 @@ declare type AnnotationRoleT = {|
 declare type AnnotationT = {|
   +changelog: string,
   +creation_date: string,
-  +editor: EditorT | null,
+  +editor: SanitizedEditorT | null,
   +html: string,
   +id: number,
   +parent: CoreEntityT | null,
@@ -799,8 +799,8 @@ declare type SanitizedCatalystContextT = {|
 |};
 
 declare type SanitizedEditorPreferencesT = {|
-  datetime_format: string,
-  timezone: string,
+  +datetime_format: string,
+  +timezone: string,
 |};
 
 declare type SanitizedEditorT = {|
