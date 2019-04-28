@@ -148,12 +148,18 @@ sub show : Chained('load') PathPart('') {
         $c->model('SeriesOrderingType')->load(@$entities);
     }
 
+    my %props = (
+        collection           => $collection,
+        collectionEntityType => $entity_type,
+        entities             => $entities,
+        order                => $order,
+        pager                => $c->stash->{pager},
+    );
+
     $c->stash(
-        entities => $entities,
-        collection => $collection,
-        order => $order,
-        entity_list_template => 'components/' . $ENTITIES{$entity_type}->{plural} . '-list.tt',
-        template => 'collection/index.tt'
+        current_view => 'Node',
+        component_path => 'collection/CollectionIndex.js',
+        component_props => \%props,
     );
 }
 
