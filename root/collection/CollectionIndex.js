@@ -25,23 +25,32 @@ import {formatPluralEntityTypeName}
 
 import CollectionLayout from './CollectionLayout';
 
-type Props = {|
+type PropsForEntity<T: CoreEntityT> = {
   +$c: CatalystContextT,
   +collection: CollectionT,
-  +collectionEntityType: string,
-  +entities: $ReadOnlyArray<CoreEntityT>,
+  +collectionEntityType: $ElementType<T, 'entityType'>,
+  +entities: $ReadOnlyArray<T>,
   +order: string,
   +pager: PagerT,
-|};
+};
 
-const listPicker = (entities, entityType, order, ownCollection) => {
-  switch (entityType) {
+type Props =
+  | PropsForEntity<AreaT>
+  | PropsForEntity<EventT>
+  | PropsForEntity<InstrumentT>
+  | PropsForEntity<LabelT>
+  | PropsForEntity<PlaceT>
+  | PropsForEntity<SeriesT>
+  ;
+
+const listPicker = (props: Props, ownCollection: boolean) => {
+  switch (props.collectionEntityType) {
     case 'area':
       return (
         <AreasList
-          areas={entities}
+          areas={props.entities}
           checkboxes={ownCollection ? 'remove' : ''}
-          order={order}
+          order={props.order}
           sortable
         />
       );
@@ -49,8 +58,8 @@ const listPicker = (entities, entityType, order, ownCollection) => {
       return (
         <EventsList
           checkboxes={ownCollection ? 'remove' : ''}
-          events={entities}
-          order={order}
+          events={props.entities}
+          order={props.order}
           sortable
         />
       );
@@ -58,8 +67,8 @@ const listPicker = (entities, entityType, order, ownCollection) => {
       return (
         <InstrumentsList
           checkboxes={ownCollection ? 'remove' : ''}
-          instruments={entities}
-          order={order}
+          instruments={props.entities}
+          order={props.order}
           sortable
         />
       );
@@ -67,8 +76,8 @@ const listPicker = (entities, entityType, order, ownCollection) => {
       return (
         <LabelsList
           checkboxes={ownCollection ? 'remove' : ''}
-          labels={entities}
-          order={order}
+          labels={props.entities}
+          order={props.order}
           sortable
         />
       );
@@ -76,8 +85,8 @@ const listPicker = (entities, entityType, order, ownCollection) => {
       return (
         <PlacesList
           checkboxes={ownCollection ? 'remove' : ''}
-          order={order}
-          places={entities}
+          order={props.order}
+          places={props.entities}
           sortable
         />
       );
@@ -85,24 +94,25 @@ const listPicker = (entities, entityType, order, ownCollection) => {
       return (
         <SeriesList
           checkboxes={ownCollection ? 'remove' : ''}
-          order={order}
-          series={entities}
+          order={props.order}
+          series={props.entities}
           sortable
         />
       );
     default:
-      throw `Unsupported entity type value: ${entityType}`;
+      throw `Unsupported entity type value: ${props.collectionEntityType}`;
   }
 };
 
-const CollectionIndex = ({
-  $c,
-  collection,
-  collectionEntityType,
-  entities,
-  order,
-  pager,
-}: Props) => {
+const CollectionIndex = (props: Props) => {
+  const {
+    $c,
+    collection,
+    collectionEntityType,
+    entities,
+    pager,
+  } = props;
+
   const ownCollection = $c.user_exists && $c.user.id === collection.editor.id;
 
   return (
@@ -127,7 +137,7 @@ const CollectionIndex = ({
       {entities.length > 0 ? (
         <form action={$c.req.uri} method="post">
           <PaginatedResults pager={pager}>
-            {listPicker(entities, collectionEntityType, order, ownCollection)}
+            {listPicker(props, ownCollection)}
           </PaginatedResults>
           {ownCollection ? (
             <FormRow>
