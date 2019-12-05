@@ -58,7 +58,7 @@
     "tablesorter": "git://github.com/Mottie/tablesorter.git#430f8c5",
     "terser-webpack-plugin": "2.2.1",
     "webpack": "4.41.2",
-    "webpack-cli": "3.2.3",
+    "webpack-cli": "3.3.10",
     "webpack-manifest-plugin": "2.0.4",
     "webpack-node-externals": "1.7.2",
     "yargs": "3.10.0"
