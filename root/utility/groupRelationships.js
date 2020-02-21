@@ -32,6 +32,7 @@ import {
 
 import areDatePeriodsEqual from './areDatePeriodsEqual';
 import getSortName from './getSortName';
+import getTargetCredit  from './getTargetCredit';
 import isLinkTypeDirectionOrderable from './isLinkTypeDirectionOrderable';
 
 const UNIT_SEP = '\x1F';
@@ -57,6 +58,7 @@ export type RelationshipPhraseGroupT = {
   combinedPhrase: Expand2ReactOutput,
   key: string,
   linkTypeInfo: Array<{
+    backward: boolean,
     editsPending: boolean,
     phrase: Expand2ReactOutput,
     rootTypeId: number | null,
@@ -77,10 +79,20 @@ export function cmpTargetTypeGroups<
   return compareStrings(a.targetType, b.targetType);
 }
 
-const cmpPhraseGroupLinkTypeInfo = (a, b) => (
-  (a.typeId - b.typeId) ||
-  compare(a.textPhrase, b.textPhrase)
-);
+export function cmpPhraseGroupLinkTypeInfo<
+  T: {
+    +backward: boolean,
+    +textPhrase: string,
+    +typeId: number | null,
+    ...
+  },
+>(a: T, b: T): number {
+  return (
+    ((a.typeId ?? 0) - (b.typeId ?? 0)) ||
+    compare(a.textPhrase, b.textPhrase) ||
+    ((a.backward ? 1 : 0) - (b.backward ? 1 : 0))
+  );
+}
 
 function cmpRelationshipPhraseGroups(a, b) {
   return cmpPhraseGroupLinkTypeInfo(a.linkTypeInfo[0], b.linkTypeInfo[0]);
@@ -333,6 +345,7 @@ export default function groupRelationships(
          */
         key: String(linkType.id) + UNIT_SEP + textPhrase,
         linkTypeInfo: [{
+          backward: relationship.backward,
           editsPending: relationship.editsPending,
           phrase: phrase ?? textPhrase,
           rootTypeId: linkType.root_id,
@@ -344,9 +357,7 @@ export default function groupRelationships(
       cmpRelationshipPhraseGroups,
     );
 
-    const targetCredit = relationship.backward
-      ? relationship.entity0_credit
-      : relationship.entity1_credit;
+    const targetCredit = getTargetCredit(relationship);
     const isOrderable = isLinkTypeDirectionOrderable(linkType, backward);
     const linkOrder = relationship.linkOrder;
     const datePeriod = {

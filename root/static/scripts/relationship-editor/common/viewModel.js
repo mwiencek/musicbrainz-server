@@ -20,6 +20,7 @@ import parseDate from '../../common/utility/parseDate';
 import request from '../../common/utility/request';
 import {hasSessionStorage} from '../../common/utility/storage';
 import {uniqueId} from '../../common/utility/strings';
+import {createExternalLinksEditor} from '../../edit/externalLinks';
 
 import fields from './fields';
 
@@ -193,7 +194,7 @@ MB.initRelationshipEditors = function (args) {
 
   var externalLinksEditor = $('#external-links-editor-container')[0];
   if (externalLinksEditor) {
-    MB.sourceExternalLinksEditor = MB.createExternalLinksEditor({
+    MB.sourceExternalLinksEditor = createExternalLinksEditor({
       sourceData: sourceData,
       mountPoint: externalLinksEditor,
     });

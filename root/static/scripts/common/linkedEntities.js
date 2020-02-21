@@ -45,7 +45,7 @@ type LinkedEntities = {
     [linkTypeIdOrGid: StrOrNum]: LinkTypeT,
   },
   link_type_tree: {
-    [entityTypes: string]: $ReadOnlyArray<LinkTypeT>,
+    [entityTypes: string]: Array<LinkTypeT>,
   },
   mergeLinkedEntities: (update: ?$Shape<LinkedEntities>) => void,
   place: {
@@ -82,7 +82,7 @@ type LinkedEntities = {
     [seriesOrderingTypeId: number]: SeriesOrderingTypeT,
   },
   series_type: {
-    [seriesTypeId: number]: SeriesTypeT,
+    [seriesTypeId: string]: SeriesTypeT,
   },
   url: {
     [urlId: number]: UrlT,

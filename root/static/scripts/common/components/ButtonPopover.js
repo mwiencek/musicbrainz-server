@@ -25,6 +25,8 @@ type PropsT = {
   +buttonRef: {current: HTMLButtonElement | null},
   +className?: string,
   +id: string,
+  +initialFocusRef?: {+current: HTMLElement | null},
+  +isDisabled?: boolean,
   +isOpen: boolean,
   +toggle: (boolean) => void,
 };
@@ -34,6 +36,7 @@ const ButtonPopover = (props: PropsT): React.MixedElement => {
     buttonContent,
     buttonProps = null,
     buttonRef,
+    isDisabled = false,
     isOpen,
     toggle,
     ...dialogProps
@@ -77,6 +80,7 @@ const ButtonPopover = (props: PropsT): React.MixedElement => {
         aria-controls={isOpen ? dialogProps.id : null}
         aria-haspopup="dialog"
         className={buttonProps?.className}
+        disabled={isDisabled}
         onClick={() => {
           if (isOpen) {
             closeAndReturnFocus();

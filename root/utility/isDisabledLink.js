@@ -11,9 +11,15 @@ import isGreyedOut from '../url/utility/isGreyedOut';
 
 export default function isDisabledLink(
   relationshipOrLinkDatePeriod: {+ended: boolean, ...},
-  entity: CoreEntityT,
+  entity:
+    | CoreEntityT
+    | {
+        +entityType: CoreEntityTypeT,
+        +href_url?: string,
+        +id: number | null,
+      },
 ): boolean {
   return entity.entityType === 'url' && (
-    relationshipOrLinkDatePeriod.ended || isGreyedOut(entity.href_url)
+    relationshipOrLinkDatePeriod.ended || isGreyedOut(entity.href_url ?? '')
   );
 }

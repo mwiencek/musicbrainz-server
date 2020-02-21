@@ -232,22 +232,19 @@ role {
 
         my $model = $self->config->{model};
         my $source_type = model_to_type($model);
-        my $source = $c->stash->{$self->{entity_name}};
-        my $source_entity = $source ? $source->TO_JSON : {entityType => $source_type};
+        my $source = $c->stash->{$self->{entity_name}} //
+            $c->model($model)->_entity_class->new;
 
-        if ($source) {
-            my @existing_relationships =
-                grep {
-                    my $lt = $_->link->type;
+        my $source_entity = $source->TO_JSON;
+        $source_entity->{relationships} = to_json_array([
+            map { $_->TO_JSON }
+            grep {
+                my $lt = $_->link->type;
 
-                    $source->id == $_->entity0_id
-                        ? $lt->entity0_cardinality == 0
-                        : $lt->entity1_cardinality == 0;
-
-                } sort { $a <=> $b } $source->all_relationships;
-
-            $source_entity->{relationships} = to_json_array(\@existing_relationships);
-        }
+                $source->id == $_->entity0_id
+                    ? $lt->entity0_cardinality == 0
+                    : $lt->entity1_cardinality == 0
+            } $source->all_relationships]);
 
         my $form_name = "edit-$source_type";
 
@@ -258,10 +255,8 @@ role {
         my @link_attribute_types = $c->model('LinkAttributeType')->get_all;
 
         $c->stash(
-            seeded_relationships => $c->json->encode(get_seeded_relationships($c, $source)),
-            source_entity   => $c->json->encode($source_entity),
-            attr_info       => $c->json->encode(\@link_attribute_types),
-            type_info       => $c->json->encode(build_type_info($c, qr/(^$source_type-|-$source_type$)/, @link_type_tree)),
+            source_entity => $source_entity,
+            seeded_relationships => get_seeded_relationships($c, $source),
         );
 
         my $post_creation = delete $opts{post_creation};

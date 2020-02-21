@@ -16,7 +16,11 @@
         [%- form_row_select(r, 'ordering_type_id', l('Ordering Type:')) -%]
       </fieldset>
 
-      [% PROCESS 'forms/relationship-editor.tt' %]
+      [% React.embed(c, 'static/scripts/relationship-editor-react/components/SeriesRelationshipEditor', {
+        formName => form.name,
+        seededRelationships => seeded_relationships,
+        source => source_entity,
+      }) %]
 
       <fieldset>
         <legend>[% l('External Links') %]</legend>
@@ -45,7 +49,6 @@
 <script>
 $(function () {
   [%- USE JSON.Escape -%]
-  MB.seriesTypesByID = [% series_types.json %];
   MB.orderingTypesByID = [% series_ordering_types.json %];
 });
 </script>

@@ -29,6 +29,72 @@ div.rel-editor-dialog .warning {
 }
 #content.rel-editor .error-field {border-bottom: 2px red dotted;}
 
+div.relationship-dialog {
+    width: 450px;
+    fieldset {
+        margin: 0px;
+        legend {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+        table.details th {
+            width: auto;
+        }
+        > p {
+            margin: 0px;
+        }
+    }
+    table.relationship-details {
+        border-spacing: 4px;
+        width: 100%;
+        td.section {
+            font-weight: bold;
+            vertical-align: top;
+            text-align: right;
+            width: 150px;
+        }
+        div.autocomplete2 { width: 100%; }
+        select.entity-type { min-width: 60%; }
+    }
+    div.entity-credit-section {
+        margin: 6px 0;
+
+        label.credit-field input { min-width: 60%; }
+
+        label.change-credits-checkbox {
+            display: flex;
+            padding-top: 6px;
+            input[type="checkbox"] { margin-top: 1px; }
+        }
+
+        div.change-credits-radio-options {
+            margin-top: 8px;
+            label { display: block; }
+        }
+    }
+    button.change-direction {
+        float: right;
+    }
+}
+
+div.attribute-container {
+    &.checkbox {
+        input[type="checkbox"] {
+            vertical-align: middle;
+        }
+    }
+    &.multiselect, &.text {
+        padding: 6px;
+    }
+    button.add-item {
+        margin-top: 6px;
+    }
+}
+
+div.ar-descr {
+    width: 95%;
+}
+
 button.copy-date {
     background-image: data-uri('../images/icons/down.png');
 }

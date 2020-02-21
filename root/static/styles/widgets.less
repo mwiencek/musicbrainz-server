@@ -106,6 +106,11 @@ div.buttons, span.buttons { display: inline-block; }
     height:16px;
 }
 
+.buttons .buttons-right {
+    float: right;
+    text-align: right;
+}
+
 /* Special */
 
 /* Buttons that should be inline (e.g. with an input or select) */
@@ -320,15 +325,17 @@ div.autocomplete2 {
 
     ul {
         background: @text-white;
-        border: 1px @musicbrainz-orange solid;
+        border: 1px #AAA solid;
+        border-bottom-width: 2px;
+        border-right-width: 2px;
         list-style: none;
         margin: 0;
-        max-width: 150%;
+        max-width: 350px;
         max-height: 400px;
         overflow-y: auto;
         padding: 0;
         position: absolute;
-        width: max-content;
+        width: 150%;
         z-index: 100;
 
         li {

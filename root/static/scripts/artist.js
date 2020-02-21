@@ -8,6 +8,7 @@
  */
 
 import './artist/components/ArtistCreditRenamer';
+import './relationship-editor-react/components/RelationshipEditorWrapper';
 
 import typeBubble from './edit/typeBubble';
 

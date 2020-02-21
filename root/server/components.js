@@ -441,6 +441,8 @@ module.exports = {
   'static/scripts/edit/components/edit/RelationshipDiff': require('../static/scripts/edit/components/edit/RelationshipDiff'),
   'static/scripts/edit/components/edit/ReleaseEventsDiff': require('../static/scripts/edit/components/edit/ReleaseEventsDiff'),
   'static/scripts/recording/RecordingName': require('../static/scripts/recording/RecordingName'),
+  'static/scripts/relationship-editor-react/components/RelationshipEditorWrapper': require('../static/scripts/relationship-editor-react/components/RelationshipEditorWrapper'),
+  'static/scripts/relationship-editor-react/components/SeriesRelationshipEditor': require('../static/scripts/relationship-editor-react/components/SeriesRelationshipEditor'),
   'url/UrlHeader': require('../url/UrlHeader'),
   'work/WorkHeader': require('../work/WorkHeader'),
 };

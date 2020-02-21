@@ -26,6 +26,9 @@ import {
   getPhraseAndExtraAttributes,
   type LinkPhraseI18n,
 } from '../../utility/linkPhrase';
+import type {
+  CompleteRelationshipStateT,
+} from '../../../relationship-editor-react/types';
 
 import DiffSide from './DiffSide';
 
@@ -33,15 +36,29 @@ const diffOnlyA = content => <span className="diff-only-a">{content}</span>;
 const diffOnlyB = content => <span className="diff-only-b">{content}</span>;
 
 type Props = {
-  newRelationship: RelationshipT,
-  oldRelationship: RelationshipT,
+  newRelationship: RelationshipT | CompleteRelationshipStateT,
+  oldRelationship: RelationshipT | CompleteRelationshipStateT,
+  makeEntityLink?: (
+    entity: CoreEntityT,
+    content: string,
+    relationship: RelationshipT | CompleteRelationshipStateT,
+  ) => React.MixedElement,
 };
 
 const getTypeId = x => String(x.typeID);
 
+const makeDescriptiveLink = (entity, content, relationship) => (
+  <DescriptiveLink
+    content={content}
+    disableLink={isDisabledLink(relationship, entity)}
+    entity={entity}
+  />
+);
+
 const RelationshipDiff = ({
   newRelationship,
   oldRelationship,
+  makeEntityLink = makeDescriptiveLink,
 }: Props): React.Element<typeof React.Fragment> => {
   const oldAttrs = oldRelationship.attributes
     ? keyBy(oldRelationship.attributes, getTypeId)
@@ -77,43 +94,37 @@ const RelationshipDiff = ({
    * so entity0 is always the source.
    */
   const oldSource =
+    oldRelationship.entity0 ||
     linkedEntities[oldLinkType.type0][oldRelationship.entity0_id];
   const newSource =
+    newRelationship.entity0 ||
     linkedEntities[newLinkType.type0][newRelationship.entity0_id];
 
-  const oldTarget = oldRelationship.target;
-  const newTarget = newRelationship.target;
+  const oldTarget = oldRelationship.entity1 || oldRelationship.target;
+  const newTarget = newRelationship.entity1 || newRelationship.target;
 
-  const oldSourceLink = (
-    <DescriptiveLink
-      content={oldRelationship.entity0_credit}
-      disableLink={isDisabledLink(oldRelationship, oldSource)}
-      entity={oldSource}
-    />
+  const oldSourceLink = makeEntityLink(
+    oldSource,
+    oldRelationship.entity0_credit,
+    oldRelationship,
   );
 
-  const newSourceLink = (
-    <DescriptiveLink
-      content={newRelationship.entity0_credit}
-      disableLink={isDisabledLink(newRelationship, newSource)}
-      entity={newSource}
-    />
+  const newSourceLink = makeEntityLink(
+    newSource,
+    newRelationship.entity0_credit,
+    newRelationship,
   );
 
-  const oldTargetLink = (
-    <DescriptiveLink
-      content={oldRelationship.entity1_credit}
-      disableLink={isDisabledLink(oldRelationship, oldTarget)}
-      entity={oldTarget}
-    />
+  const oldTargetLink = makeEntityLink(
+    oldTarget,
+    oldRelationship.entity1_credit,
+    oldRelationship,
   );
 
-  const newTargetLink = (
-    <DescriptiveLink
-      content={newRelationship.entity1_credit}
-      disableLink={isDisabledLink(newRelationship, newTarget)}
-      entity={newTarget}
-    />
+  const newTargetLink = makeEntityLink(
+    newTarget,
+    newRelationship.entity1_credit,
+    newRelationship,
   );
 
   let [oldPhrase, oldExtraAttributes] = ['', []];

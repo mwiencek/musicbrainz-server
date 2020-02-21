@@ -55,7 +55,7 @@ export type Actions<+T: EntityItem> =
   | SearchAction
   | {
       +type: 'change-entity-type',
-      +entityType: SearchableType,
+      +entityType: $ElementType<T, 'entityType'>,
     }
   | { +type: 'clear-recent-items' }
   | { +type: 'highlight-next-item', +items: $ReadOnlyArray<Item<T>> }
@@ -114,11 +114,7 @@ export type Item<+T: EntityItem> =
 
 /* eslint-enable flowtype/sort-keys */
 
-/*
- * This is basically CoreEntityT without UrlT (since those aren't
- * searchable), plus EditorT (which isn't a core entity, but is
- * searchable).
- */
+// Searchable entity types.
 export type EntityItem =
   | AreaT
   | ArtistT

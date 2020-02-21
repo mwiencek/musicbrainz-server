@@ -7,7 +7,8 @@
  * later version: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-import {useCallback} from 'react';
+import mutate from 'mutate-cow';
+import * as React from 'react';
 
 import FieldErrors from '../../../../components/FieldErrors';
 import FormRowPartialDate, {
@@ -16,6 +17,10 @@ import FormRowPartialDate, {
 } from '../../../../components/FormRowPartialDate';
 import FormRowCheckbox from '../../../../components/FormRowCheckbox';
 import {applyAllPendingErrors} from '../../../../utility/subfieldErrors';
+import {bracketedText} from '../../common/utility/bracketed';
+import formatDatePeriod from '../../common/utility/formatDatePeriod';
+import parseIntegerOrNull from '../../common/utility/parseIntegerOrNull';
+import useEditButton from '../hooks/useEditButton';
 import {isDatePeriodValid} from '../utility/dates';
 
 /* eslint-disable flowtype/sort-keys */
@@ -27,6 +32,7 @@ export type ActionT =
 /* eslint-enable flowtype/sort-keys */
 
 type PropsT = {
+  +collapsed?: boolean,
   +disabled?: boolean,
   +dispatch: (ActionT) => void,
   +endedLabel: string,
@@ -37,14 +43,24 @@ export type StateT = DatePeriodFieldT;
 
 export type WritableStateT = WritableDatePeriodFieldT;
 
-function partialDateFromField(
+function datePeriodFromField(
+  compoundField: DatePeriodFieldT,
+): DatePeriodRoleT {
+  return {
+    begin_date: partialDateFromField(compoundField.field.begin_date),
+    end_date: partialDateFromField(compoundField.field.end_date),
+    ended: compoundField.field.ended.value,
+  };
+}
+
+export function partialDateFromField(
   compoundField: PartialDateFieldT,
-) {
+): PartialDateT {
   const fields = compoundField.field;
   return {
-    day: fields.day.value,
-    month: fields.month.value,
-    year: fields.year.value,
+    day: parseIntegerOrNull(fields.day.value),
+    month: parseIntegerOrNull(fields.month.value),
+    year: parseIntegerOrNull(fields.year.value),
   };
 }
 
@@ -133,7 +149,17 @@ export function runReducer(
   }
 }
 
-const DateRangeFieldset = ({
+export function reducer(
+  state: StateT,
+  action: ActionT,
+): StateT {
+  return mutate<WritableStateT, StateT>(state, (newState) => {
+    runReducer(newState, action);
+  });
+}
+
+const DateRangeFieldset = (React.memo<PropsT>(({
+  collapsed = false,
   disabled = false,
   dispatch,
   endedLabel,
@@ -141,7 +167,7 @@ const DateRangeFieldset = ({
 }: PropsT): React$Element<React$FragmentType> => {
   const subfields = field.field;
 
-  const handleEndedChange = useCallback((
+  const handleEndedChange = React.useCallback((
     event: SyntheticEvent<HTMLInputElement>,
   ) => {
     dispatch({
@@ -154,60 +180,89 @@ const DateRangeFieldset = ({
     dispatch({type: 'copy-date'});
   };
 
-  const beginDateDispatch = useCallback((
+  const beginDateDispatch = React.useCallback((
     action: FormRowPartialDateActionT,
   ) => {
     dispatch({action, type: 'update-begin-date'});
   }, [dispatch]);
 
-  const endDateDispatch = useCallback((
+  const endDateDispatch = React.useCallback((
     action: FormRowPartialDateActionT,
   ) => {
     dispatch({action, type: 'update-end-date'});
   }, [dispatch]);
 
+  const beginYearInputRef = React.useRef(null);
+
+  const [isExpanded, handleEditButtonClick] =
+    useEditButton(beginYearInputRef, !collapsed);
+
+  const formattedDatePeriod = React.useMemo(() => (
+    formatDatePeriod(datePeriodFromField(field))
+  ), [field]);
+
   return (
     <>
       <fieldset>
-        <legend>{l('Date Period')}</legend>
-        <p>
-          {l(`Dates are in the format YYYY-MM-DD.
-              Partial dates such as YYYY-MM or just YYYY are OK,
-              or you can omit the date entirely.`)}
-        </p>
-        <FormRowPartialDate
-          disabled={disabled}
-          dispatch={beginDateDispatch}
-          field={subfields.begin_date}
-          label={addColonText(l('Begin date'))}
-        >
-          <button
-            className="icon copy-date"
-            disabled={disabled}
-            onClick={handleDateCopy}
-            title={l('Copy date')}
-            type="button"
-          />
-        </FormRowPartialDate>
-        <FormRowPartialDate
-          disabled={disabled}
-          dispatch={endDateDispatch}
-          field={subfields.end_date}
-          label={addColonText(l('End date'))}
-        />
-        <FieldErrors
-          field={field}
-          includeSubFields={false}
-        />
-        <FormRowCheckbox
-          disabled={disabled}
-          field={subfields.ended}
-          label={endedLabel}
-          onChange={handleEndedChange}
-        />
+        <legend>
+          {l('Date Period')}
+          {isExpanded ? null : (
+            <>
+              {formattedDatePeriod ? (
+                ' ' + bracketedText(formattedDatePeriod)
+              ) : null}
+              {' '}
+              <button
+                className="icon edit-item"
+                onClick={handleEditButtonClick}
+                type="button"
+              />
+            </>
+          )}
+        </legend>
+        {isExpanded ? (
+          <>
+            <p>
+              {l(`Dates are in the format YYYY-MM-DD.
+                  Partial dates such as YYYY-MM or just YYYY are OK,
+                  or you can omit the date entirely.`)}
+            </p>
+            <FormRowPartialDate
+              disabled={disabled}
+              dispatch={beginDateDispatch}
+              field={subfields.begin_date}
+              label={addColonText(l('Begin date'))}
+              yearInputRef={beginYearInputRef}
+            >
+              <button
+                className="icon copy-date"
+                disabled={disabled}
+                onClick={handleDateCopy}
+                title={l('Copy date')}
+                type="button"
+              />
+            </FormRowPartialDate>
+            <FormRowPartialDate
+              disabled={disabled}
+              dispatch={endDateDispatch}
+              field={subfields.end_date}
+              label={addColonText(l('End date'))}
+            />
+            <FieldErrors
+              field={field}
+              includeSubFields={false}
+            />
+            <FormRowCheckbox
+              disabled={disabled}
+              field={subfields.ended}
+              label={endedLabel}
+              onChange={handleEndedChange}
+            />
+          </>
+        ) : null}
       </fieldset>
     </>
   );
-};
+}): React.AbstractComponent<PropsT>);
 
 export default DateRangeFieldset;

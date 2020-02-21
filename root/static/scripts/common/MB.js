@@ -13,10 +13,27 @@ import global from '../global';
 
 import * as constants from './constants';
 
+/*::
+import type {ExternalLinksEditor} from '../edit/externalLinks';
+*/
+
+type MBType = {
+  +constants: {...},
+  +Control: {...},
+  +formWasPosted?: boolean,
+  +GuessCase: {...},
+  +sourceExternalLinksEditor?: ExternalLinksEditor,
+  +text: {...},
+  +utility: {...},
+  ...
+};
+
 // Namespaces
-const MB: {[namespace: string]: {...}, ...} = {
+const MB: MBType = {
   // Classes, common controls used throughout MusicBrainz
   Control: {},
+
+  GuessCase: {},
 
   // Utility functions
   utility: {},

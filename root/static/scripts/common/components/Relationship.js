@@ -14,21 +14,48 @@ import bracketed from '../utility/bracketed';
 import {displayLinkAttributes}
   from '../utility/displayLinkAttribute';
 import {interpolate, getExtraAttributes} from '../../edit/utility/linkPhrase';
+import type {
+  CompleteRelationshipStateT,
+} from '../../relationship-editor-react/types';
 import isDisabledLink from '../../../../utility/isDisabledLink';
 import relationshipDateText
   from '../../../../utility/relationshipDateText';
 
 import DescriptiveLink from './DescriptiveLink';
 
+type CompleteRelationshipT =
+  | RelationshipT
+  | CompleteRelationshipStateT;
+
 type Props = {
   +allowNewEntity0?: boolean,
   +allowNewEntity1?: boolean,
-  +relationship: RelationshipT,
+  +makeEntityLink?: (
+    entity: CoreEntityT,
+    content: string,
+    relationship: CompleteRelationshipT,
+    allowNew: ?boolean,
+  ) => React.MixedElement,
+  +relationship: CompleteRelationshipT,
 };
+
+const makeDescriptiveLink = (
+  entity,
+  content,
+  relationship,
+  allowNew,
+) => (
+  <DescriptiveLink
+    allowNew={allowNew ?? false}
+    content={content}
+    disableLink={isDisabledLink(relationship, entity)}
+    entity={entity}
+  />
+);
 
 const HistoricRelationshipContent = ({
   relationship,
-}: {relationship: RelationshipT}) => {
+}: {relationship: CompleteRelationshipT}) => {
   const linkType = linkedEntities.link_type[relationship.linkTypeID];
   const source = linkedEntities[linkType.type0][relationship.entity0_id];
   const extraAttributes = getExtraAttributes(
@@ -66,6 +93,7 @@ const HistoricRelationshipContent = ({
 const RelationshipContent = ({
   allowNewEntity0,
   allowNewEntity1,
+  makeEntityLink = makeDescriptiveLink,
   relationship,
 }: Props) => {
   const backward = relationship.backward;
@@ -96,18 +124,18 @@ const RelationshipContent = ({
     relationship.attributes,
     'long_link_phrase',
     false /* forGrouping */,
-    <DescriptiveLink
-      allowNew={allowNewEntity0}
-      content={relationship.entity0_credit}
-      disableLink={isDisabledLink(relationship, entity0)}
-      entity={entity0}
-    />,
-    <DescriptiveLink
-      allowNew={allowNewEntity1}
-      content={relationship.entity1_credit}
-      disableLink={isDisabledLink(relationship, entity1)}
-      entity={entity1}
-    />,
+    makeEntityLink(
+      entity0,
+      relationship.entity0_credit,
+      relationship,
+      allowNewEntity0,
+    ),
+    makeEntityLink(
+      entity1,
+      relationship.entity1_credit,
+      relationship,
+      allowNewEntity1,
+    ),
   );
   const extraAttributes = getExtraAttributes(
     linkType,
@@ -140,25 +168,13 @@ export const HistoricRelationship = ({
   ) : <HistoricRelationshipContent relationship={relationship} />
 );
 
-const Relationship = ({
-  allowNewEntity0,
-  allowNewEntity1,
-  relationship,
-}: Props): React.MixedElement => (
-  relationship.editsPending ? (
+const Relationship = (props: Props): React.MixedElement => (
+  props.relationship.editsPending ? (
     <span className="mp mp-rel">
-      <RelationshipContent
-        allowNewEntity0={allowNewEntity0}
-        allowNewEntity1={allowNewEntity1}
-        relationship={relationship}
-      />
+      <RelationshipContent {...props} />
     </span>
   ) : (
-    <RelationshipContent
-      allowNewEntity0={allowNewEntity0}
-      allowNewEntity1={allowNewEntity1}
-      relationship={relationship}
-    />
+    <RelationshipContent {...props} />
   )
 );
 

@@ -46,12 +46,14 @@ type PropsT = {
   +closeAndReturnFocus: () => void,
   +dialogRef: {current: HTMLDivElement | null},
   +id: string,
+  +initialFocusRef?: {+current: HTMLElement | null},
 };
 
 const Popover = (props: PropsT): React.Portal => {
   const {
     buildChildren,
     buttonRef,
+    className,
     closeAndReturnFocus,
     dialogRef,
     ...dialogProps
@@ -71,7 +73,7 @@ const Popover = (props: PropsT): React.Portal => {
   return createPortal(
     <Dialog
       {...dialogProps}
-      className="popover"
+      className={'popover ' + (className || '')}
       dialogRef={dialogRef}
       onEscape={closeAndReturnFocus}
       siblings={<div data-popper-arrow />}

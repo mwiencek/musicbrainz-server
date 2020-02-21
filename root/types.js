@@ -392,7 +392,7 @@ declare type CoreEntityT =
   | NonUrlCoreEntityT
   | UrlT;
 
-declare type CoreEntityTypeT =
+declare type NonUrlCoreEntityTypeT =
   | 'area'
   | 'artist'
   | 'event'
@@ -404,8 +404,11 @@ declare type CoreEntityTypeT =
   | 'release_group'
   | 'release'
   | 'series'
-  | 'url'
   | 'work';
+
+declare type CoreEntityTypeT =
+  | NonUrlCoreEntityTypeT
+  | 'url';
 
 declare type CoverArtTypeT = OptionTreeT<'cover_art_type'>;
 
@@ -764,6 +767,11 @@ declare type LinkAttrTypeT = {
   +instrument_comment?: string,
   +instrument_type_id?: number,
   +instrument_type_name?: string,
+  l_description?: string,
+  l_description_normalized?: string,
+  l_name?: string,
+  l_name_normalized?: string,
+  level?: number,
   +root_gid: string,
   +root_id: number,
 };
@@ -775,7 +783,7 @@ declare type LinkTypeAttrTypeT = {
 
 declare type LinkTypeT = {
   ...OptionTreeT<'link_type'>,
-  +attributes: {+[typeId: number]: LinkTypeAttrTypeT},
+  +attributes: {+[typeId: StrOrNum]: LinkTypeAttrTypeT},
   +cardinality0: number,
   +cardinality1: number,
   +children?: $ReadOnlyArray<LinkTypeT>,
@@ -792,8 +800,10 @@ declare type LinkTypeT = {
    * side by the relationship editor.
    */
   l_description?: string,
+  l_description_normalized?: string,
   l_link_phrase?: string,
   l_name?: string,
+  l_name_normalized?: string,
   l_reverse_link_phrase?: string,
   +link_phrase: string,
   +long_link_phrase: string,
@@ -966,9 +976,9 @@ declare type RelationshipT = $ReadOnly<{
   +id: number,
   +linkOrder: number,
   +linkTypeID: number,
-  +source_type: string,
+  +source_type: CoreEntityTypeT,
   +target: CoreEntityT,
-  +target_type: string,
+  +target_type: CoreEntityTypeT,
 }>;
 
 declare type ReleaseGroupSecondaryTypeT =

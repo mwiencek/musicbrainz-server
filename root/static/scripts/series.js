@@ -4,40 +4,24 @@ import ko from 'knockout';
 import {SERIES_ORDERING_TYPE_AUTOMATIC} from './common/constants';
 import MB from './common/MB';
 import initializeDuplicateChecker from './edit/check-duplicates';
+import './relationship-editor-react/components/SeriesRelationshipEditor';
 
 $(function () {
   var $type = $('#id-edit-series\\.type_id');
   var $orderingType = $('#id-edit-series\\.ordering_type_id');
-  const $type_options = $('#id-edit-series\\.type_id > option');
 
-  function updateAllowedTypes(seriesHasItems) {
-    $type_options.each(function () {
-      const type = MB.seriesTypesByID[this.value];
-      if (seriesHasItems &&
-          type.item_entity_type !== series.type().item_entity_type) {
-        this.setAttribute('disabled', 'disabled');
-      } else {
-        this.removeAttribute('disabled');
-      }
-    });
-  }
-
-  var series = MB.entityCache[MB.sourceEntityGID];
-  series.typeID($type.val());
-
-  series.orderingTypeID($orderingType.val());
+  const series = new MB.entity.Series({
+    orderingTypeID: $orderingType.val(),
+    typeID: $type.val(),
+  });
 
   series.typeBubble = new MB.Control.BubbleDoc();
 
   series.typeBubble.canBeShown = function () {
-    return !!series.type();
+    return nonEmpty($type.val());
   };
 
   series.orderingTypeBubble = new MB.Control.BubbleDoc();
-
-  ko.computed(function () {
-    series.type(MB.seriesTypesByID[series.typeID()]);
-  });
 
   series.orderingTypeDescription = ko.computed(function () {
     return lp_attributes(
@@ -45,14 +29,6 @@ $(function () {
       'series_ordering_type',
     );
   });
-
-  var seriesHasItems = ko.computed(function () {
-    return series.getSeriesItems(MB.sourceRelationshipEditor).length > 0;
-  });
-
-  updateAllowedTypes(seriesHasItems());
-
-  seriesHasItems.subscribe((hasItems) => updateAllowedTypes(hasItems));
 
   ko.applyBindingsToNode($type[0], {
     value: series.typeID,

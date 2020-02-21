@@ -28,6 +28,7 @@ export type PropsT = $ReadOnly<{
   ...RequiredPropsT,
   +activeElementRef?: {-current: HTMLElement},
   +className?: string,
+  +initialFocusRef?: {+current: HTMLElement | null},
   +onClick?: (SyntheticMouseEvent<HTMLDivElement>) => void,
   +siblings?: React.Node,
   // Set `title` to a non-null value to show the title bar.
@@ -69,6 +70,7 @@ const Dialog = ({
   className,
   dialogRef,
   id,
+  initialFocusRef,
   onClick,
   onEscape,
   siblings,
@@ -87,7 +89,8 @@ const Dialog = ({
      * the <select> options list.
      */
     const tid = setTimeout(() => {
-      const toFocus = findFirstTabbableElement(dialogNode);
+      const toFocus = initialFocusRef?.current ||
+        findFirstTabbableElement(dialogNode);
       if (toFocus) {
         toFocus.focus();
       }
@@ -98,7 +101,7 @@ const Dialog = ({
       dialogNode.style.visibility = 'hidden';
       dialogNode.setAttribute('aria-hidden', 'true');
     };
-  }, [dialogRef, id]);
+  }, [dialogRef, id, initialFocusRef]);
 
   const handleFocus = React.useCallback((
     event: SyntheticKeyboardEvent<HTMLElement>,

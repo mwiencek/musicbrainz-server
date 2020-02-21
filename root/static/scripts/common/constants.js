@@ -9,6 +9,8 @@
 
 import ENTITIES from '../../../../entities';
 
+import {compareStrings} from './utility/compare';
+
 export {ENTITIES};
 
 export const ENTITY_NAMES: {
@@ -203,7 +205,9 @@ export const FAVICON_CLASSES = {
   'www5.atwiki.jp/hmiku/': 'hmikuwiki',
 };
 
-export const PART_OF_SERIES_LINK_TYPES = {
+export const PART_OF_SERIES_LINK_TYPES: {
+  +[type: CoreEntityTypeT]: string | null,
+} = {
   area: null,
   artist: null,
   event: '707d947d-9563-328a-9a7d-0c5b9c3a9791',
@@ -219,9 +223,25 @@ export const PART_OF_SERIES_LINK_TYPES = {
   work: 'b0d44366-cdf0-3acb-bee6-0f65a77a6ef0',
 };
 
+export const PART_OF_SERIES_LINK_TYPE_GIDS: $ReadOnlyArray<string> =
+  (Object.values(PART_OF_SERIES_LINK_TYPES).filter(Boolean): any);
+
 // orchestrator, orchestra performed, conductor, concertmaster
 export const PROBABLY_CLASSICAL_LINK_TYPES =
   [40, 45, 46, 150, 151, 300, 759, 760];
+
+export const RELATABLE_ENTITIES: $ReadOnlyArray<CoreEntityTypeT> =
+  // $FlowFixMe
+  Object.keys(ENTITIES)
+    .filter(entityType => !!(
+      ENTITIES[entityType].mbid?.relatable
+    ))
+    .sort(compareStrings);
+
+export const NON_URL_RELATABLE_ENTITIES:
+  $ReadOnlyArray<NonUrlCoreEntityTypeT> =
+  // $FlowIssue[incompatible-type]
+  RELATABLE_ENTITIES.filter(x => x !== 'url');
 
 export const RT_SLAVE = 2;
 

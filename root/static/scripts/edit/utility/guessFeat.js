@@ -240,7 +240,7 @@ export default function guessFeat(entity) {
 // For use outside of the release editor.
 MB.Control.initGuessFeatButton = function (formName) {
   const augmentedEntity = Object.assign(
-    Object.create(MB.sourceRelationshipEditor.source),
+    Object.create({}),
     {
       /*
        * Emulate an observable that just reads/writes
@@ -264,11 +264,11 @@ MB.Control.initGuessFeatButton = function (formName) {
        * fields is also different from MB.sourceRelationshipEditor.source's,
        * so we have to replace this field too.
        */
-      artistCredit: MB.sourceEntity.artistCredit,
+      artistCredit: null,
     },
   );
 
-  $(document).on('click', 'button.guessfeat.icon', function () {
-    guessFeat(augmentedEntity);
-  });
+  //$(document).on('click', 'button.guessfeat.icon', function () {
+  //  guessFeat(augmentedEntity);
+  //});
 };
