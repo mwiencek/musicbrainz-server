@@ -192,7 +192,7 @@ class Dialog {
       target = options.relationship.target(source);
     } else {
       options.relationship = this.viewModel.getRelationship({
-        target: target, direction: options.direction,
+        target: target, backward: !!options.backward,
       }, source);
 
       const linkTypeChildren =
@@ -797,7 +797,7 @@ export class BatchRelationshipDialog extends Dialog {
     delete model.entities;
 
     model.target = this.relationship().target(this.source);
-    model.direction = this.backward() ? 'backward' : 'forward';
+    model.backward = !!this.backward();
 
     for (const source of this.sources) {
       model = {...model};

@@ -943,7 +943,7 @@ declare type RelationshipT = {
   ...EditableRoleT,
   // `attributes` may not exist when seeding.
   +attributes?: $ReadOnlyArray<LinkAttrT>,
-  +direction?: 'backward',
+  +backward: boolean,
   +entity0?: CoreEntityT,
   +entity0_credit: string,
   +entity0_id: number,

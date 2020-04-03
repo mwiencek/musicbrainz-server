@@ -220,7 +220,7 @@ MB.getRelationship = function (data, source) {
   let backward = source.entityType > target.entityType;
 
   if (source.entityType === target.entityType) {
-    backward = (data.direction === 'backward');
+    backward = !!data.backward;
   }
 
   data.entities = backward ? [target, source] : [source, target];
@@ -341,7 +341,7 @@ function addRelationshipsFromQueryString(source) {
       begin_date: parseDate(rel.begin_date || ''),
       end_date: parseDate(rel.end_date || ''),
       ended: !!Number(rel.ended),
-      direction: rel.direction,
+      backward: !!rel.backward,
       linkOrder: Number(rel.link_order) || 0,
     };
 

@@ -42,10 +42,9 @@ const renderPhraseGroup = (phraseGroup: RelationshipPhraseGroupT) => (
 
 const renderWorkRelationship = (relationship: RelationshipT) => {
   const work = relationship.target;
-  const backward = relationship.direction === 'backward';
   const phrase = interpolate(
     relationship,
-    backward ? 'reverse_link_phrase' : 'link_phrase',
+    relationship.backward ? 'reverse_link_phrase' : 'link_phrase',
     /*
      * Work relationships are not grouped together on a single line,
      * because we have to output the relationships of the work under
@@ -59,7 +58,7 @@ const renderWorkRelationship = (relationship: RelationshipT) => {
     ? <span className="mp">{phrase}</span>
     : phrase;
 
-  const targetCredit = backward
+  const targetCredit = relationship.backward
     ? relationship.entity0_credit
     : relationship.entity1_credit;
 
@@ -97,8 +96,7 @@ const GroupedTrackRelationships = ({
          * Specifically ignore work parts, but still keep works this
          * work is a part of.
          */
-        if (relationship.linkTypeID !== 281 ||
-            relationship.direction === 'backward') {
+        if (relationship.linkTypeID !== 281 || relationship.backward) {
           workRelationships.push(relationship);
         }
         return false;

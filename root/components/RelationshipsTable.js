@@ -210,7 +210,7 @@ const RelationshipsTable = ({
     for (const relationship of linkTypeGroup.relationships) {
       let sourceCredit = '';
       let targetCredit = '';
-      if (relationship.direction === 'backward') {
+      if (relationship.backward) {
         targetCredit = relationship.entity0_credit;
         sourceCredit = relationship.entity1_credit;
       } else {
