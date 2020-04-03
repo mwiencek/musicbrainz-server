@@ -941,8 +941,7 @@ declare type RecordingWithArtistCreditT =
 declare type RelationshipT = {
   ...DatePeriodRoleT,
   ...EditableRoleT,
-  // `attributes` may not exist when seeding.
-  +attributes?: $ReadOnlyArray<LinkAttrT>,
+  +attributes: $ReadOnlyArray<LinkAttrT>,
   +backward: boolean,
   +entity0?: CoreEntityT,
   +entity0_credit: string,
