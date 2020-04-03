@@ -6,7 +6,6 @@
  * later version: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-import $ from 'jquery';
 import ko from 'knockout';
 
 import {compare} from '../common/i18n';
@@ -14,9 +13,6 @@ import MB from '../common/MB';
 import {last} from '../common/utility/arrays';
 import debounce from '../common/utility/debounce';
 import {stripAttributes} from '../edit/utility/linkPhrase';
-
-const ELEMENT_NODE = window.Node.ELEMENT_NODE;
-const COMMENT_NODE = window.Node.COMMENT_NODE;
 
 function cmpOptions(a, b) {
   return (a.data.child_order - b.data.child_order) ||
@@ -123,8 +119,8 @@ ko.bindingHandlers.loop = {
 
     const childNodes = Array.from(ko.virtualElements.childNodes(parentNode));
     for (const node of childNodes) {
-      if (node.nodeType === ELEMENT_NODE ||
-          node.nodeType === COMMENT_NODE) {
+      if (node.nodeType === Node.ELEMENT_NODE ||
+          node.nodeType === Node.COMMENT_NODE) {
         template.push(node);
       }
     }
@@ -134,7 +130,7 @@ ko.bindingHandlers.loop = {
      * is a virtual element, this will be the parentNode of the comment.
      */
     var actualParentNode = parentNode;
-    while (actualParentNode.nodeType !== ELEMENT_NODE) {
+    while (actualParentNode.nodeType !== Node.ELEMENT_NODE) {
       actualParentNode = actualParentNode.parentNode;
     }
 
@@ -327,6 +323,7 @@ ko.bindingHandlers.withLabel = {
 
     var name = valueAccessor() + '-' + bindingContext.$index();
 
+    const $ = require('jquery');
     $(element)
       .attr('id', name)
       .parents('td')
