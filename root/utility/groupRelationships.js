@@ -30,6 +30,7 @@ import {
 } from '../static/scripts/edit/utility/linkPhrase';
 
 import areDatePeriodsEqual from './areDatePeriodsEqual';
+import isLinkTypeDirectionOrderable from './isLinkTypeDirectionOrderable';
 
 const UNIT_SEP = '\x1F';
 
@@ -222,14 +223,6 @@ function mergeDatedExtraAttributes(pairs) {
 
 const getSortName = x => x.entityType === 'artist' ? x.sort_name : x.name;
 
-function targetIsOrderable(relationship: RelationshipT) {
-  const linkType = linkedEntities.link_type[relationship.linkTypeID];
-  const backward = relationship.backward;
-  // `backward` indicates that the relationship target is entity0
-  return (linkType.orderable_direction === 1 && !backward) ||
-          (linkType.orderable_direction === 2 && backward);
-}
-
 export default function groupRelationships(
   relationships: ?$ReadOnlyArray<RelationshipT>,
   types?: ?$ReadOnlyArray<CoreEntityTypeT>,
@@ -372,7 +365,7 @@ export default function groupRelationships(
     const targetCredit = relationship.backward
       ? relationship.entity0_credit
       : relationship.entity1_credit;
-    const isOrderable = targetIsOrderable(relationship);
+    const isOrderable = isLinkTypeDirectionOrderable(linkType, backward);
     const linkOrder = relationship.linkOrder;
     const datePeriod = {
       begin_date: relationship.begin_date,
