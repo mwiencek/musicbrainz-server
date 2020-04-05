@@ -30,6 +30,7 @@ import {
 } from '../static/scripts/edit/utility/linkPhrase';
 
 import areDatePeriodsEqual from './areDatePeriodsEqual';
+import getSortName from './getSortName';
 import isLinkTypeDirectionOrderable from './isLinkTypeDirectionOrderable';
 
 const UNIT_SEP = '\x1F';
@@ -220,8 +221,6 @@ function mergeDatedExtraAttributes(pairs) {
     }
   }
 }
-
-const getSortName = x => x.entityType === 'artist' ? x.sort_name : x.name;
 
 export default function groupRelationships(
   relationships: ?$ReadOnlyArray<RelationshipT>,
