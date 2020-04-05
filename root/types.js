@@ -1131,6 +1131,13 @@ declare type SelectOptionT = {
 
 declare type SelectOptionsT = $ReadOnlyArray<SelectOptionT>;
 
+declare type SeriesEntityTypeT =
+  | 'event'
+  | 'recording'
+  | 'release'
+  | 'release_group'
+  | 'work';
+
 declare type SeriesT = $ReadOnly<{
   ...AnnotationRoleT,
   ...CommentRoleT,
@@ -1149,7 +1156,7 @@ declare type SeriesOrderingTypeT = OptionTreeT<'series_ordering_type'>;
 
 declare type SeriesTypeT = $ReadOnly<{
   ...OptionTreeT<'series_type'>,
-  item_entity_type: CoreEntityTypeT,
+  item_entity_type: SeriesEntityTypeT,
 }>;
 
 declare type ServerLanguageT = {
