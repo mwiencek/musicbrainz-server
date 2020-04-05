@@ -938,7 +938,7 @@ declare type RecordingT = $ReadOnly<{
 declare type RecordingWithArtistCreditT =
   $ReadOnly<{...RecordingT, +artistCredit: ArtistCreditT}>;
 
-declare type RelationshipT = {
+declare type RelationshipT = $ReadOnly<{
   ...DatePeriodRoleT,
   ...EditableRoleT,
   +attributes: $ReadOnlyArray<LinkAttrT>,
@@ -955,7 +955,7 @@ declare type RelationshipT = {
   +source_type: string,
   +target: CoreEntityT,
   +target_type: string,
-};
+}>;
 
 declare type ReleaseGroupSecondaryTypeT =
   OptionTreeT<'release_group_secondary_type'>;
