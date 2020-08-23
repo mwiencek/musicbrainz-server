@@ -4,11 +4,14 @@ use Moose;
 BEGIN { extends 'MusicBrainz::Server::ControllerBase::WS::js'; }
 
 use Data::OptList;
+use Digest::MD5 qw( md5_hex );
+use IO::Compress::Gzip qw( gzip $GzipError );
 use JSON qw( encode_json decode_json );
 use List::UtilsBy qw( uniq_by );
 use MusicBrainz::Server::WebService::Validator;
 use MusicBrainz::Server::Filters;
 use MusicBrainz::Server::Data::Search qw( escape_query );
+use MusicBrainz::Server::Data::Utils qw( type_to_model );
 use MusicBrainz::Server::Constants qw( entities_with %ENTITIES );
 use MusicBrainz::Server::Validation qw( is_guid );
 use Readonly;
@@ -35,6 +38,9 @@ my $ws_defs = Data::OptList::mkopt([
         inc => [ qw(rels) ]
     },
     "events" => {
+        method => 'GET'
+    },
+    "type-info" => {
         method => 'GET'
     },
 ]);
@@ -298,6 +304,45 @@ sub events : Chained('root') PathPart('events') {
 
     $c->res->content_type($c->stash->{serializer}->mime_type . '; charset=utf-8');
     $c->res->body(encode_json($events));
+}
+
+sub type_info : Chained('root') PathPart('type-info') Args(1) {
+    my ($self, $c, $type_name) = @_;
+
+    my $type_model_name = eval { type_to_model($type_name) };
+
+    $self->detach_with_error($c, "unknown type: $type_name", 400)
+        if $@;
+
+    my $type_model = $c->model($type_model_name);
+
+    $self->detach_with_error($c, "unsupported type: $type_name", 400)
+        unless $type_model->can('get_all');
+
+    my $cache = $c->model('MB')->cache;
+    my $cache_key = "js_${type_name}_info";
+    my $response = $cache->get($cache_key);
+    my $etag = $cache->get("$cache_key:etag");
+
+    unless (defined $response) {
+        my $response_obj = {
+            "${type_name}_list" => [$type_model->get_all],
+        };
+        my $encoded_json = $c->json_canonical_utf8->encode($response_obj);
+        gzip(\$encoded_json => \$response) or die qq(gzip failed: $GzipError);
+        $cache->set($cache_key, $response);
+        $etag = undef;
+    }
+
+    unless (defined $etag) {
+        $etag = md5_hex($response);
+        $cache->set("$cache_key:etag", $etag);
+    }
+
+    $c->res->content_type('application/json; charset=utf-8');
+    $c->res->content_encoding('gzip');
+    $c->response->headers->etag($etag);
+    $c->res->body($response);
 }
 
 sub detach_with_error : Private {
