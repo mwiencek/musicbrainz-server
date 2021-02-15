@@ -1202,7 +1202,6 @@ declare type TrackT = $ReadOnly<{
   +number: string,
   +position: number,
   +recording?: RecordingT,
-  +unaccented_name: string | null,
 }>;
 
 declare type TypeRoleT<T> = {
