@@ -21,7 +21,7 @@ export function isDateObservableEmpty(
   );
 }
 
-export default function isDateEmpty(date: ?PartialDateT): boolean {
+export default function isDateEmpty(date: ?PartialDateT): boolean %checks {
   return (date == null) ||
     (date.year == null && date.month == null && date.day == null);
 }
