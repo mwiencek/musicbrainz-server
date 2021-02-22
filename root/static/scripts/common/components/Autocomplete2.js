@@ -519,11 +519,6 @@ export default function Autocomplete2<+T: EntityItem>(
   );
 
   React.useEffect(() => {
-    if (shouldUpdateScrollPositionRef.current) {
-      setScrollPosition(menuId);
-      shouldUpdateScrollPositionRef.current = false;
-    }
-
     if (!recentItems) {
       getOrFetchRecentItems<T>(
         entityType,
@@ -554,6 +549,14 @@ export default function Autocomplete2<+T: EntityItem>(
           doSearch<T>(dispatch, props, xhr);
         }
       }, 300);
+    }
+  });
+
+
+  React.useLayoutEffect(() => {
+    if (shouldUpdateScrollPositionRef.current) {
+      setScrollPosition(menuId);
+      shouldUpdateScrollPositionRef.current = false;
     }
   });
 
