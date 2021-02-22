@@ -48,10 +48,20 @@ $(function () {
     switch (action.type) {
       case 'update-autocomplete':
         state = {...state};
-        state[action.prop] = autocompleteReducer(
-          (state[action.prop]: any),
-          action.action,
-        );
+        switch (action.prop) {
+          case 'entityAutocomplete':
+            state.entityAutocomplete = autocompleteReducer<NonUrlCoreEntityT>(
+              state.entityAutocomplete,
+              action.action,
+            );
+            break;
+          case 'vocalAutocomplete':
+            state.vocalAutocomplete = autocompleteReducer<LinkAttrTypeT>(
+              state.vocalAutocomplete,
+              action.action,
+            );
+            break;
+        }
         break;
     }
     return state;
@@ -132,7 +142,7 @@ $(function () {
         </div>
         <div>
           <h2>{'Vocal autocomplete'}</h2>
-          {/* $FlowIssue[incompatible-type] */}
+          {/* $FlowIssue[incompatible-use] */}
           <Autocomplete2
             dispatch={vocalAutocompleteDispatch}
             {...state.vocalAutocomplete}
