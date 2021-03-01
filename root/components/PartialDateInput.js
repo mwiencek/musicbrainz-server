@@ -25,6 +25,7 @@ export type ActionT =
 type CommonProps = {
   +disabled?: boolean,
   +field: PartialDateFieldT,
+  +yearInputRef?: {current: HTMLInputElement | null},
 };
 
 type Props =
@@ -99,6 +100,7 @@ const PartialDateInput = ({
   dispatch,
   field,
   uncontrolled = false,
+  yearInputRef,
   ...inputProps
 }: Props): React.Element<'span'> => {
   const yearProps = {};
@@ -156,6 +158,7 @@ const PartialDateInput = ({
         maxLength={4}
         name={field.field.year.html_name}
         placeholder={l('YYYY')}
+        ref={yearInputRef}
         size={4}
         type="text"
         {...yearProps}
