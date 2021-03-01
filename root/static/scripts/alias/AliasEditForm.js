@@ -38,7 +38,7 @@ import {
 } from '../edit/components/GuessCaseOptions';
 import copyFieldData, {copyFieldErrors} from '../edit/utility/copyFieldData';
 import {
-  createCompoundField,
+  createCompoundFieldFromObject,
   createField,
 } from '../edit/utility/createField';
 import hydrate from '../../../utility/hydrate';
@@ -86,11 +86,11 @@ type WritableStateT = {
 const blankDatePeriod = {
   errors: [],
   field: {
-    begin_date: createCompoundField(
+    begin_date: createCompoundFieldFromObject(
       'period.begin_date',
       {day: '', month: '', year: ''},
     ),
-    end_date: createCompoundField(
+    end_date: createCompoundFieldFromObject(
       'period.end_date',
       {day: '', month: '', year: ''},
     ),
