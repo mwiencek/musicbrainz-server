@@ -21,12 +21,14 @@ function sanitizedContext(
 ) /*: SanitizedCatalystContextT */ {
   const stash = $c.stash;
   const user = $c.user;
+  const req = $c.req;
   return {
     action: {
       name: $c.action.name,
     },
     req: {
-      uri: $c.req.uri,
+      method: req.method,
+      uri: req.uri,
     },
     stash: {
       current_language: stash.current_language,

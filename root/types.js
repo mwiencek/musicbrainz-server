@@ -211,6 +211,7 @@ declare type CatalystContextT = {
 declare type CatalystRequestContextT = {
   +body_params: {+[param: string]: string},
   +headers: {+[header: string]: string},
+  +method: string,
   +query_params: {+[param: string]: string},
   +secure: boolean,
   +uri: string,
@@ -1070,6 +1071,7 @@ declare type SanitizedCatalystContextT = {
     +name: string,
   },
   +req: {
+    +method: string,
     +uri: string,
   },
   +stash: {

@@ -22,6 +22,7 @@ const defaultContext = {
   req: {
     body_params: {},
     headers: {},
+    method: '',
     query_params: {},
     secure: false,
     uri: '',
@@ -39,6 +40,7 @@ const defaultSanitizedContext = {
     name: '',
   },
   req: {
+    method: '',
     uri: '',
   },
   stash: {
