@@ -32,7 +32,7 @@ class GuessCaseWorkHandler extends GuessCaseHandler {
 
   getWordsForProcessing(is) {
     is = modes[gc.modeName].preProcessTitles(is);
-    return modes.[gc.modeName].prepExtraTitleInfo(
+    return modes[gc.modeName].prepExtraTitleInfo(
       input.splitWordsAndPunctuation(is),
     );
   }
