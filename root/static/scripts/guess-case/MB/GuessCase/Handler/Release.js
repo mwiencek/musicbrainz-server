@@ -66,7 +66,9 @@ class GuessCaseReleaseHandler extends GuessCaseHandler {
   }
 
   // Guesses the sortname for releases (for aliases)
-  guessSortName = this.moveArticleToEnd;
+  guessSortName(is) {
+    return this.moveArticleToEnd(is);
+  }
 }
 
 export default GuessCaseReleaseHandler;

@@ -56,7 +56,9 @@ class GuessCaseWorkHandler extends GuessCaseHandler {
   }
 
   // Guesses the sortname for works
-  guessSortName = this.moveArticleToEnd;
+  guessSortName(is) {
+    return this.moveArticleToEnd(is);
+  }
 }
 
 export default GuessCaseWorkHandler;

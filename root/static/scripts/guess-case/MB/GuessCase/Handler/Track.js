@@ -119,7 +119,9 @@ class GuessCaseTrackHandler extends GuessCaseHandler {
   }
 
   // Guesses the sortname for recordings (for aliases)
-  guessSortName = this.moveArticleToEnd;
+  guessSortName(is) {
+    return this.moveArticleToEnd(is);
+  }
 }
 
 export default GuessCaseTrackHandler;
