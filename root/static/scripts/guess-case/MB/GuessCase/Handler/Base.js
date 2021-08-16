@@ -33,9 +33,6 @@ class GuessCaseHandler {
     this.SPECIALCASE_CROWD_NOISE = 33;      // [crowd noise]
     this.SPECIALCASE_GUITAR_SOLO = 34;      // [guitar solo]
     this.SPECIALCASE_DIALOGUE = 35;          // [dialogue]
-
-    this.getWordsForProcessing =
-      input.splitWordsAndPunctuation.bind(input);
   }
 
   // Member functions
@@ -77,6 +74,10 @@ class GuessCaseHandler {
       default:
         return is;
     }
+  }
+
+  getWordsForProcessing(is) {
+    return input.splitWordsAndPunctuation(is);
   }
 
   process(is) {
