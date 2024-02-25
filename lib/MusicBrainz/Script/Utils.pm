@@ -8,7 +8,12 @@ use feature 'state';
 
 use base 'Exporter';
 
-our @EXPORT_OK = qw( get_primary_keys log retry );
+our @EXPORT_OK = qw(
+    get_primary_keys
+    is_table_empty
+    log
+    retry
+);
 
 =sub get_primary_keys
 
@@ -37,6 +42,20 @@ sub get_primary_keys($$$) {
     } @keys;
     $cache->{$table} = \@keys;
     return @keys;
+}
+
+=sub is_table_empty
+
+Returns whether C<$table> is empty.
+
+=cut
+
+sub is_table_empty {
+    my ($sql, $table) = @_;
+
+    not defined $sql->select_single_value(<<~"SQL");
+        SELECT 1 FROM $table LIMIT 1;
+        SQL
 }
 
 =sub log
