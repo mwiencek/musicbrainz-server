@@ -140,6 +140,7 @@ const ArtistCreditPreview = (React.memo<ArtistCreditPreviewPropsT>(({
                 <ArtistCreditLink
                   artistCredit={artistCredit}
                   showDeleted={false}
+                  showDisambiguation
                   target="_blank"
                 />
               )}
