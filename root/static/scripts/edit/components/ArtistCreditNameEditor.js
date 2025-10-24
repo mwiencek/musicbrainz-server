@@ -19,6 +19,7 @@ import type {
   ActionT,
   ArtistCreditNameStateT,
 } from './ArtistCreditEditor/types.js';
+import {getJoinPhrase} from './ArtistCreditEditor/utilities.js';
 
 component _ArtistCreditNameEditor(
   allowMoveDown: boolean,
@@ -30,7 +31,7 @@ component _ArtistCreditNameEditor(
   name as artistCreditName: ArtistCreditNameStateT,
   showMoveButtons: boolean,
 ) {
-  const nameFieldId = artistCreditName.nameFieldId;
+  const nameFieldId = artistCreditName.id;
 
   const artistDispatch = React.useCallback((
     action: AutocompleteActionT<ArtistT>,
@@ -172,7 +173,7 @@ component _ArtistCreditNameEditor(
               onBlur={handleNameBlur}
               onChange={handleNameChange}
               type="text"
-              value={artistCreditName.name ?? ''}
+              value={artistCreditName.field.name.value}
             />
           </td>
           <td>
@@ -182,7 +183,7 @@ component _ArtistCreditNameEditor(
               onBlur={handleJoinPhraseBlur}
               onChange={handleJoinPhraseChange}
               type="text"
-              value={artistCreditName.joinPhrase ?? ''}
+              value={getJoinPhrase(artistCreditName)}
             />
           </td>
         </>

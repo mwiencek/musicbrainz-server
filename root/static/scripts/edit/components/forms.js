@@ -22,6 +22,7 @@ import MB from '../../common/MB.js';
 import {getCatalystContext} from '../../common/utility/catalyst.js';
 
 import {
+  getArtistCreditNames,
   incompleteArtistCreditFromState,
 } from './ArtistCreditEditor/utilities.js';
 import ArtistCreditEditor, {
@@ -50,8 +51,15 @@ export const KnockoutArtistCreditEditor = ({
     initialState,
   );
 
-  const entity = state.entity;
-  const isOpenRef = React.useRef(state.isOpen);
+  const {
+    changeMatchingTrackArtists,
+    entity,
+    initialArtistCreditString,
+    isOpen,
+  } = state;
+  const names = getArtistCreditNames(state);
+
+  const isOpenRef = React.useRef(isOpen);
   const artistCreditRef = React.useRef(entity.artistCredit.peek());
 
   React.useEffect(() => {
@@ -62,27 +70,27 @@ export const KnockoutArtistCreditEditor = ({
   }, [entity, dispatch]);
 
   React.useEffect(() => {
-    const newArtistCredit = incompleteArtistCreditFromState(state.names);
+    const newArtistCredit = incompleteArtistCreditFromState(names);
     if (!artistCreditsAreEqual(newArtistCredit, artistCreditRef.current)) {
       artistCreditRef.current = newArtistCredit;
       entity.artistCredit(newArtistCredit);
     }
 
-    if (isOpenRef.current !== state.isOpen) {
-      isOpenRef.current = state.isOpen;
+    if (isOpenRef.current !== isOpen) {
+      isOpenRef.current = isOpen;
 
       if (
-        !state.isOpen &&
+        !isOpen &&
         // The dialog was closed; copy changes to the tracks.
         entity.entityType === 'track' &&
-        state.changeMatchingTrackArtists
+        changeMatchingTrackArtists
       ) {
         entity.medium.release.mediums()
           .flatMap(medium => medium.tracks())
           .forEach(function (otherTrack) {
             if (
               otherTrack !== entity &&
-              state.initialArtistCreditString ===
+              initialArtistCreditString ===
                 reduceArtistCredit(otherTrack.artistCredit.peek())
             ) {
               otherTrack.artistCredit(newArtistCredit);
@@ -92,10 +100,10 @@ export const KnockoutArtistCreditEditor = ({
     }
   }, [
     entity,
-    state.isOpen,
-    state.names,
-    state.changeMatchingTrackArtists,
-    state.initialArtistCreditString,
+    isOpen,
+    names,
+    changeMatchingTrackArtists,
+    initialArtistCreditString,
   ]);
 
   React.useEffect(() => {
@@ -166,6 +174,7 @@ export function initializeArtistCredit(formName) {
     entity: source,
     formName,
     htmlId: 'source',
+    initialField: artistCreditField,
   });
   const container = document.getElementById('artist-credit-editor');
   const root = ReactDOMClient.createRoot(container);

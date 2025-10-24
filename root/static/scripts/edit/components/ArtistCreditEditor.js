@@ -26,9 +26,15 @@ import {createArtistObject} from '../../common/entity2.js';
 import {
   reduceArtistCreditNames,
 } from '../../common/immutable-entities.js';
+import {arraysEqual} from '../../common/utility/arrays.js';
 import isDatabaseRowId from '../../common/utility/isDatabaseRowId.js';
-import {uniqueId} from '../../common/utility/numbers.js';
 import {localStorage} from '../../common/utility/storage.js';
+import {
+  createCompoundField,
+  createField,
+  createRepeatableField,
+} from '../utility/createField.js';
+import {applyAllPendingErrors} from '../utility/subfieldErrors.js';
 
 import type {
   ActionT,
@@ -38,12 +44,130 @@ import type {
 } from './ArtistCreditEditor/types.js';
 import {
   artistCreditStateToString,
+  getArtist,
+  getArtistCreditNames,
+  getJoinPhrase,
   incompleteArtistCreditFromState,
   isArtistCreditStateComplete,
   isNameNotRemoved,
   isNameRemoved,
 } from './ArtistCreditEditor/utilities.js';
 import ArtistCreditBubble from './ArtistCreditBubble.js';
+import {HiddenFields} from './HiddenField.js';
+
+function createArtistCreditNameField(
+  creditedName: string,
+  joinPhrase: string,
+): ArtistCreditNameFieldT {
+  // `html_name`s are assigned by `updateArtistCreditFieldData`.
+  return createCompoundField('', {
+    artist: createCompoundField('', {
+      id: createField<string | null>('', null),
+      name: createField('', ''),
+    }),
+    join_phrase: createField('', joinPhrase),
+    name: createField('', creditedName),
+  });
+}
+
+function setPendingFieldErrors(
+  fieldCtx: CowContext<AnyFieldT>,
+  pendingErrors: ReadonlyArray<string>,
+): void {
+  const field = fieldCtx.read();
+  const unfixedErrors = field.errors.filter(
+    (error) => pendingErrors.includes(error),
+  );
+  if (unfixedErrors.length !== field.errors.length) {
+    fieldCtx.set('errors', unfixedErrors);
+  }
+  if (!arraysEqual(field.pendingErrors ?? [], pendingErrors)) {
+    fieldCtx.set('pendingErrors', pendingErrors);
+  }
+  fieldCtx.set('has_errors', pendingErrors.length > 0);
+}
+
+/*
+ * Updates the artist subfields and `html_name`s of a credit, and validates
+ * it. Please keep the validation in sync with
+ * `MusicBrainz::Server::Form::Field::ArtistCredit`.
+ */
+function updateArtistCreditFieldData(
+  stateCtx: CowContext<StateT>,
+): void {
+  const namesCtx = stateCtx.get('field', 'names');
+  const {
+    html_name: namesHtmlName,
+    field: {length: totalNames},
+  } = namesCtx.read();
+  let submittedCount = 0;
+
+  for (let index = 0; index < totalNames; index++) {
+    const nameCtx = namesCtx.get('field', index);
+    const name = nameCtx.read();
+
+    if (name.removed) {
+      setPendingFieldErrors(nameCtx, []);
+      continue;
+    }
+
+    const nameHtmlName = namesHtmlName + '.' + String(submittedCount);
+    const artistHtmlName = nameHtmlName + '.artist';
+    const artist = getArtist(name);
+    const artistName =
+      artist == null ? name.artist.inputValue : artist.name;
+    const creditedName = name.field.name.value || artistName;
+
+    nameCtx.merge({
+      field: {
+        artist: {
+          field: {
+            id: {
+              html_name: artistHtmlName + '.id',
+              value: artist == null ? null : String(artist.id),
+            },
+            name: {
+              html_name: artistHtmlName + '.name',
+              value: artistName,
+            },
+          },
+          html_name: artistHtmlName,
+        },
+        join_phrase: {html_name: nameHtmlName + '.join_phrase'},
+        name: {html_name: nameHtmlName + '.name'},
+      },
+      html_name: nameHtmlName,
+    });
+
+    const errors = [];
+    if (artist == null) {
+      if (empty(creditedName)) {
+        errors.push(l('Please add an artist name for each credit.'));
+      } else if (empty(artistName)) {
+        errors.push(texp.l(
+          'Please add an artist name for {credit}',
+          {credit: creditedName},
+        ));
+      } else {
+        errors.push(texp.l(
+          `Artist "{artist}" is unlinked, please select an existing artist.
+          You may need to add a new artist to MusicBrainz first.`,
+          {artist: creditedName},
+        ));
+      }
+    }
+    setPendingFieldErrors(nameCtx, errors);
+
+    submittedCount++;
+  }
+
+  namesCtx.set('last_index', submittedCount - 1);
+
+  setPendingFieldErrors(
+    stateCtx,
+    submittedCount ? [] : [l('Artist credit field is required')],
+  );
+}
 
 function setAutoJoinPhrases(
   namesCtx: CowContext<ReadonlyArray<ArtistCreditNameStateT>>,
@@ -67,7 +191,7 @@ function setAutoJoinPhrases(
     const index = nonRemovedIndexes[size - 1];
     const name0 = names[index];
     if (name0 && name0.automaticJoinPhrase !== false) {
-      namesCtx.set(index, 'joinPhrase', '');
+      namesCtx.set(index, 'field', 'join_phrase', 'value', '');
     }
   }
 
@@ -75,8 +199,8 @@ function setAutoJoinPhrases(
     const index = nonRemovedIndexes[size - 2];
     const name1 = names[index];
     if (name1 && name1.automaticJoinPhrase !== false &&
-        auto.test(name1.joinPhrase)) {
-      namesCtx.set(index, 'joinPhrase', ' & ');
+        auto.test(getJoinPhrase(name1))) {
+      namesCtx.set(index, 'field', 'join_phrase', 'value', ' & ');
     }
   }
 
@@ -84,22 +208,28 @@ function setAutoJoinPhrases(
     const index = nonRemovedIndexes[size - 3];
     const name2 = names[index];
     if (name2 && name2.automaticJoinPhrase !== false &&
-        auto.test(name2.joinPhrase)) {
-      namesCtx.set(index, 'joinPhrase', ', ');
+        auto.test(getJoinPhrase(name2))) {
+      namesCtx.set(index, 'field', 'join_phrase', 'value', ', ');
     }
   }
 }
 
 function removeRemovedCredits(stateCtx: CowContext<StateT>): void {
-  const {htmlId, names} = stateCtx.read();
+  const namesCtx = stateCtx.get('field', 'names', 'field');
+  const names = namesCtx.read();
   if (names.some(isNameRemoved)) {
-    const namesCtx = stateCtx.get('names');
     namesCtx.set(names.filter(isNameNotRemoved));
-    const totalNames = stateCtx.read().names.length;
+    const artistCreditEditorHtmlId = stateCtx.read().htmlId;
+    const totalNames = namesCtx.read().length;
     for (let i = 0; i < totalNames; i++) {
-      namesCtx.set(i, 'artist', 'id', getArtistCreditNameInputId(htmlId, i));
+      namesCtx.set(
+        i,
+        'artist',
+        'id',
+        getArtistCreditNameInputId(artistCreditEditorHtmlId, i),
+      );
     }
-    if (!names.length) {
+    if (!totalNames) {
       addEmptyCredit(stateCtx);
     }
   }
@@ -116,22 +246,19 @@ function getEmptyArtistCreditNameState(
   htmlId: string,
   index: number,
 ): ArtistCreditNameStateT {
-  const nameFieldId = uniqueId();
   return {
+    ...createArtistCreditNameField('', ''),
     artist: createInitialAutocompleteState<ArtistT>({
       entityType: 'artist',
       id: getArtistCreditNameInputId(htmlId, index),
     }),
     automaticJoinPhrase: true,
-    joinPhrase: '',
-    name: '',
-    nameFieldId,
     removed: false,
   };
 }
 
 function addEmptyCredit(stateCtx: CowContext<StateT>) {
-  const namesCtx = stateCtx.get('names');
+  const namesCtx = stateCtx.get('field', 'names', 'field');
   namesCtx.write().push(getEmptyArtistCreditNameState(
     stateCtx.read().htmlId,
     namesCtx.read().length,
@@ -144,16 +271,19 @@ function swapCredits(
   i: number,
   j: number,
 ) {
-  const tmpName = stateCtx.read().names[i];
-  stateCtx.set('names', i, stateCtx.read().names[j]);
-  stateCtx.set('names', j, tmpName);
+  const namesCtx = stateCtx.get('field', 'names', 'field');
+  const tmpName = namesCtx.read()[i];
+  namesCtx.set(i, namesCtx.read()[j]);
+  namesCtx.set(j, tmpName);
 
   // Preserve join phrase positions if neither credit is removed.
-  const names = stateCtx.read().names;
+  const names = namesCtx.read();
   if (!names[i].removed && !names[j].removed) {
-    const tmpJoinPhrase = names[i].joinPhrase;
-    stateCtx.set('names', i, 'joinPhrase', names[j].joinPhrase);
-    stateCtx.set('names', j, 'joinPhrase', tmpJoinPhrase);
+    const tmpJoinPhrase = getJoinPhrase(names[i]);
+    namesCtx.set(
+      i, 'field', 'join_phrase', 'value', getJoinPhrase(names[j]),
+    );
+    namesCtx.set(j, 'field', 'join_phrase', 'value', tmpJoinPhrase);
   }
 }
 
@@ -169,14 +299,12 @@ export function reducer(
   action: ActionT,
 ): StateT {
   const stateCtx = mutate(state);
-  const names = state.names;
+  const names = getArtistCreditNames(state);
 
   // If this action is updating a specific AC name, retrieve its index.
   let nameIndex = -1;
   if (action.nameFieldId != null) {
-    nameIndex = names.findIndex(
-      name => name.nameFieldId === action.nameFieldId,
-    );
+    nameIndex = names.findIndex(name => name.id === action.nameFieldId);
     if (nameIndex < 0) {
       return state;
     }
@@ -210,8 +338,9 @@ export function reducer(
     {type: 'edit-artist', const action, ...} => {
       const origAction = action;
 
-      stateCtx.update('names', nameIndex, (nameCtx) => {
+      stateCtx.update('field', 'names', 'field', nameIndex, (nameCtx) => {
         const name = nameCtx.read();
+        const creditedName = name.field.name.value;
         const prevInputValue = name.artist.inputValue;
         const artistAutocomplete = autocompleteReducer<ArtistT>(
           name.artist,
@@ -219,10 +348,12 @@ export function reducer(
         );
         nameCtx.set('artist', artistAutocomplete);
         if (
-          (name.name === prevInputValue) ||
-          (artistAutocomplete.selectedItem && empty(name.name))
+          (creditedName === prevInputValue) ||
+          (artistAutocomplete.selectedItem && empty(creditedName))
         ) {
-          nameCtx.set('name', artistAutocomplete.inputValue);
+          nameCtx.set(
+            'field', 'name', 'value', artistAutocomplete.inputValue,
+          );
         }
       });
     }
@@ -230,20 +361,20 @@ export function reducer(
       // eslint-disable-next-line no-unused-vars
       const {nameFieldId, type, ...editData} = action;
 
-      stateCtx.update('names', nameIndex, (nameCtx) => {
+      stateCtx.update('field', 'names', 'field', nameIndex, (nameCtx) => {
         if (editData.automaticJoinPhrase != null) {
           nameCtx.set('automaticJoinPhrase', editData.automaticJoinPhrase);
         }
 
         if (editData.joinPhrase != null) {
-          nameCtx.set('joinPhrase', editData.joinPhrase);
+          nameCtx.set('field', 'join_phrase', 'value', editData.joinPhrase);
         }
 
         if (editData.name != null) {
-          nameCtx.set('name', editData.name);
+          nameCtx.set('field', 'name', 'value', editData.name);
         }
 
-        const {artist, name} = nameCtx.read();
+        const {artist, field: {name: {value: name}}} = nameCtx.read();
         if (!artist.selectedItem && artist.inputValue !== name) {
           nameCtx.set('artist', autocompleteReducer<ArtistT>(artist, {
             type: 'type-value',
@@ -263,17 +394,17 @@ export function reducer(
       }
     }
     {type: 'remove-name', ...} => {
-      const nonRemovedCount = state.names.reduce((accum, name) => {
+      const nonRemovedCount = names.reduce((accum, name) => {
         return accum + (name.removed ? 0 : 1);
       }, 0);
-      const namesCtx = stateCtx.get('names');
       if (nonRemovedCount > 1) {
+        const namesCtx = stateCtx.get('field', 'names', 'field');
         namesCtx.set(nameIndex, 'removed', true);
         setAutoJoinPhrases(namesCtx);
       }
     }
     {type: 'undo-remove-name', ...} => {
-      const namesCtx = stateCtx.get('names');
+      const namesCtx = stateCtx.get('field', 'names', 'field');
       namesCtx.set(nameIndex, 'removed', false);
       setAutoJoinPhrases(namesCtx);
     }
@@ -283,14 +414,16 @@ export function reducer(
         if (copiedArtistCreditString != null) {
           const artistCredit = JSON.parse(copiedArtistCreditString);
           stateCtx.set(
+            'field',
             'names',
+            'field',
             createInitialNamesState(
               artistCredit,
               state.htmlId,
               /* automaticJoinPhrase = */ false,
             ),
           );
-          if (!stateCtx.read().names.length) {
+          if (!getArtistCreditNames(stateCtx.read()).length) {
             addEmptyCredit(stateCtx);
           }
         }
@@ -312,7 +445,9 @@ export function reducer(
       // $FlowFixMe[incompatible-type] - null artists were filled in
       writableArtistCredit = artistCreditCtx.final() as ArtistCreditT;
       stateCtx.set(
+        'field',
         'names',
+        'field',
         createInitialNamesState(writableArtistCredit, state.htmlId),
       );
     }
@@ -324,24 +459,26 @@ export function reducer(
     }
   }
 
-  const newState = stateCtx.read();
+  let newState = stateCtx.read();
   const newSingleArtistAutocomplete =
     newState.singleArtistAutocomplete;
-  const newNames = newState.names;
+  const newNames = getArtistCreditNames(newState);
 
   if (
     state.singleArtistAutocomplete !== newSingleArtistAutocomplete &&
-    isSingleArtistEditableInState(state.names)
+    isSingleArtistEditableInState(names)
   ) {
-    stateCtx.update('names', 0, (nameCtx) => {
+    stateCtx.update('field', 'names', 'field', 0, (nameCtx) => {
       const artistName = newSingleArtistAutocomplete.inputValue;
       nameCtx.merge({
         artist: {
           inputValue: artistName,
           selectedItem: newSingleArtistAutocomplete.selectedItem,
         },
-        joinPhrase: '',
-        name: artistName,
+        field: {
+          join_phrase: {value: ''},
+          name: {value: artistName},
+        },
       });
     });
   } else if (names !== newNames) {
@@ -366,7 +503,27 @@ export function reducer(
   }
 
   stateCtx.get('singleArtistAutocomplete')
-    .set('isLookupPerformed', isArtistCreditStateComplete(newState.names));
+    .set('isLookupPerformed', isArtistCreditStateComplete(
+      getArtistCreditNames(stateCtx.read()),
+    ));
+
+  updateArtistCreditFieldData(stateCtx);
+
+  /*
+   * Show pending errors if the bubble was closed, or if focus moved away
+   * from the single-artist autocomplete.
+   */
+  newState = stateCtx.read();
+  if (
+    !newState.isOpen &&
+    (
+      state.isOpen ||
+      (state.singleArtistAutocomplete.isInputFocused &&
+       !newState.singleArtistAutocomplete.isInputFocused)
+    )
+  ) {
+    applyAllPendingErrors(stateCtx);
+  }
 
   return stateCtx.final();
 }
@@ -375,7 +532,7 @@ function isSingleArtistEditableInState(
   names: ReadonlyArray<ArtistCreditNameStateT>,
 ): boolean {
   if (names.filter(isNameNotRemoved).length === 1) {
-    const firstArtist = names[0].artist.selectedItem?.entity;
+    const firstArtist = getArtist(names[0]);
     return !(
       firstArtist &&
       firstArtist.name !== artistCreditStateToString(names)
@@ -388,6 +545,9 @@ function createInitialNamesState(
   artistCredit: IncompleteArtistCreditT,
   htmlId: string,
   automaticJoinPhrase?: boolean = true,
+  initialNameFields?: ?ReadonlyArray<
+    ArtistCreditNameFieldT | ArtistCreditNameStateT,
+  >,
 ): ReadonlyArray<ArtistCreditNameStateT> {
   const names = artistCredit.names;
 
@@ -396,7 +556,6 @@ function createInitialNamesState(
   }
 
   return names.map((name, index) => {
-    const nameFieldId = uniqueId();
     const artist = name.artist;
     let artistName = '';
     let selectedItem = null;
@@ -411,7 +570,12 @@ function createInitialNamesState(
         };
       }
     }
+    const initialField = initialNameFields?.[index];
     return {
+      ...(initialField ?? createArtistCreditNameField(
+        name.name || artistName,
+        name.joinPhrase ?? '',
+      )),
       artist: createInitialAutocompleteState<ArtistT>({
         containerClass: 'artist-credit-editor',
         entityType: 'artist',
@@ -420,9 +584,6 @@ function createInitialNamesState(
         selectedItem,
       }),
       automaticJoinPhrase,
-      joinPhrase: name.joinPhrase ?? '',
-      name: name.name || artistName,
-      nameFieldId,
       removed: false,
     };
   });
@@ -439,15 +600,21 @@ export function createInitialState(
      * releases will repeat the same recording!)
      */
     readonly htmlId: string,
+    /*
+     * The artist credit field received from the server, which may contain
+     * validation error strings from FormHandler.
+     */
+    readonly initialField?: ?(ArtistCreditFieldT | StateT),
     readonly isOpen?: boolean,
   },
 ): StateT {
   const {
     artistCredit: passedArtistCredit,
     entity,
-    htmlId,
+    formName,
+    htmlId: passedHtmlId,
+    initialField,
     isOpen = false,
-    ...otherState
   } = initialState;
   // Consider enforcing AC once we use Flow everywhere
   const artistCredit: ?ArtistCreditT =
@@ -455,17 +622,41 @@ export function createInitialState(
 
   invariant(artistCredit);
 
-  const names = createInitialNamesState(artistCredit, htmlId);
+  let field = initialField;
+  if (!field) {
+    const htmlName = nonEmpty(formName) ? formName + '.artist_credit' : '';
+    field = createCompoundField(htmlName, {
+      names: createRepeatableField<ArtistCreditNameFieldT>(
+        htmlName + '.names',
+        [],
+      ),
+    });
+  }
+
+  const htmlId = passedHtmlId == null
+    ? String(field.id)
+    : String(passedHtmlId);
+
+  const names = createInitialNamesState(
+    artistCredit,
+    htmlId,
+    /* automaticJoinPhrase = */ true,
+    field.field.names.field,
+  );
   const isSingleArtistEditable = isSingleArtistEditableInState(names);
 
-  return {
-    artistCreditString: '',
-    changeMatchingTrackArtists: false,
+  const stateCtx = mutate<StateT>({
+    ...field,
     entity,
+    field: {
+      names: {
+        ...field.field.names,
+        field: names,
+      },
+    },
     htmlId,
     initialArtistCreditString: '',
     isOpen,
-    names,
     singleArtistAutocomplete: createInitialAutocompleteState<ArtistT>({
       containerClass: 'artist-credit-editor',
       disabled: isOpen || !isSingleArtistEditable,
@@ -479,8 +670,11 @@ export function createInitialState(
           : null
       ),
     }),
-    ...otherState,
-  };
+  });
+
+  updateArtistCreditFieldData(stateCtx);
+
+  return stateCtx.final();
 }
 
 component _ArtistCreditEditor(
@@ -489,9 +683,7 @@ component _ArtistCreditEditor(
   state: StateT,
 ) {
   const {
-    formName,
     isOpen,
-    names,
     singleArtistAutocomplete,
   } = state;
 
@@ -504,10 +696,6 @@ component _ArtistCreditEditor(
       type: 'update-single-artist-autocomplete',
     });
   }, [dispatch]);
-
-  const hiddenInputsPrefix = nonEmpty(formName) ? (
-    formName + '.artist_credit.names.'
-  ) : '';
 
   const buildPopoverChildren = React.useCallback((
     closeAndReturnFocus: () => void,
@@ -551,36 +739,12 @@ component _ArtistCreditEditor(
         />
       </Autocomplete2>
 
-      {hiddenInputsPrefix ? (
-        names.filter(isNameNotRemoved).map(function (name, i) {
-          const curPrefix = hiddenInputsPrefix + i + '.';
-          const artistAutocomplete = name.artist;
-          const artist = artistAutocomplete.selectedItem?.entity;
-          return (
-            <React.Fragment key={curPrefix}>
-              <input
-                name={curPrefix + 'name'}
-                type="hidden"
-                value={name.name ?? ''}
-              />
-              <input
-                name={curPrefix + 'join_phrase'}
-                type="hidden"
-                value={name.joinPhrase ?? ''}
-              />
-              <input
-                name={curPrefix + 'artist.name'}
-                type="hidden"
-                value={(artist?.name) ?? artistAutocomplete.inputValue}
-              />
-              <input
-                name={curPrefix + 'artist.id'}
-                type="hidden"
-                value={String((artist?.id) ?? '')}
-              />
-            </React.Fragment>
-          );
-        })
+      {nonEmpty(state.html_name) ? (
+        getArtistCreditNames(state).map((name) => (
+          name.removed
+            ? null
+            : <HiddenFields field={name} key={name.id} />
+        ))
       ) : null}
     </>
   );

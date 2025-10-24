@@ -11,19 +11,30 @@ import {VARTIST_GID} from '../../../common/constants.js';
 
 import type {
   ArtistCreditNameStateT,
+  StateT,
 } from './types.js';
 
-function getArtist(
+export function getArtistCreditNames(
+  state: StateT,
+): ReadonlyArray<ArtistCreditNameStateT> {
+  return state.field.names.field;
+}
+
+export function getArtist(
   name: ArtistCreditNameStateT,
 ): ArtistT | null {
   return (name.artist.selectedItem?.entity) ?? null;
 }
 
-function getCreditedName(
+export function getCreditedName(
   name: ArtistCreditNameStateT,
   artist?: ?ArtistT = getArtist(name),
 ): string {
-  return name.name || (artist?.name ?? '');
+  return name.field.name.value || (artist?.name ?? '');
+}
+
+export function getJoinPhrase(name: ArtistCreditNameStateT): string {
+  return name.field.join_phrase.value;
 }
 
 export function isNameRemoved(name: ArtistCreditNameStateT): boolean {
@@ -47,7 +58,7 @@ function incompleteArtistCreditNamesFromState(
     const artist = getArtist(x);
     accum.push({
       artist,
-      joinPhrase: x.joinPhrase,
+      joinPhrase: getJoinPhrase(x),
       name: getCreditedName(x, artist),
     });
     return accum;
@@ -78,7 +89,7 @@ const _accumArtistCreditNameToString = (
   accum +
   (name.removed ? '' : (
     getCreditedName(name) +
-    (name.joinPhrase ?? '')
+    getJoinPhrase(name)
   ))
 );
 
