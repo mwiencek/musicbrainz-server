@@ -417,6 +417,7 @@ component RecordingEditForm(
     if (hasErrors) {
       dispatch({type: 'show-all-pending-errors'});
       event.preventDefault();
+      return;
     }
   };
 
@@ -534,7 +535,7 @@ component RecordingEditForm(
           field={state.form.field.edit_note}
           onChange={handleEditNoteChange}
         />
-        <EnterEdit disabled={hasErrors} form={state.form} />
+        <EnterEdit form={state.form} />
       </div>
 
       <div className="documentation">
