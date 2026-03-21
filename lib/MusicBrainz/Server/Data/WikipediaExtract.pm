@@ -173,7 +173,7 @@ sub _wikipedia_languages_callback
 sub _extract_by_language_callback
 {
     my (%opts) = @_;
-    if ($opts{fetched}{content}) {
+    if ($opts{fetched}{content} && !$opts{fetched}{is_redirect}) {
         return WikipediaExtract->new( title => $opts{fetched}{title},
                                       content => $opts{fetched}{content} =~ s{<p>}{<p><bdi>}gr =~ s{</p>}{</bdi></p>}gr,
                                       canonical => $opts{fetched}{canonical},
