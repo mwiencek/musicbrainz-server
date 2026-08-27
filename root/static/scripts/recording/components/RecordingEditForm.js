@@ -54,6 +54,8 @@ import {
 import {
   withLoadedTypeInfoForRelationshipEditor,
 } from '../../edit/components/withLoadedTypeInfo.js';
+import useFormSubmitHandler
+  from '../../edit/hooks/useFormSubmitHandler.js';
 import guessFeat from '../../edit/utility/guessFeat.js';
 import isInvalidEditNote from '../../edit/utility/isInvalidEditNote.js';
 import isInvalidLength from '../../edit/utility/isInvalidLength.js';
@@ -406,20 +408,7 @@ component RecordingEditForm(
     !isArtistCreditStateComplete(state.artistCredit.names) ||
     hasErrorsOnNewOrChangedLinks(state.externalLinksEditor.links);
 
-  // Ensure errors are shown if the user tries to submit with Enter
-  const handleKeyDown = (event: SyntheticKeyboardEvent<HTMLFormElement>) => {
-    if (event.key === 'Enter' && hasErrors) {
-      dispatch({type: 'show-all-pending-errors'});
-    }
-  };
-
-  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
-    if (hasErrors) {
-      dispatch({type: 'show-all-pending-errors'});
-      event.preventDefault();
-      return;
-    }
-  };
+  const handleSubmit = useFormSubmitHandler(hasErrors, dispatch);
 
   const nameFieldRef = React.useRef<HTMLDivElement | null>(null);
   const artistFieldRef = React.useRef<HTMLDivElement | null>(null);
@@ -432,7 +421,6 @@ component RecordingEditForm(
     <form
       className="edit-recording"
       method="post"
-      onKeyDown={handleKeyDown}
       onSubmit={handleSubmit}
     >
       <p>
