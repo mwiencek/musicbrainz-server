@@ -7,6 +7,8 @@
  * later version: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
+import type {CowContext} from 'mutate-cow';
+
 import {VARTIST_GID} from '../../../common/constants.js';
 
 import type {
@@ -18,6 +20,12 @@ export function getArtistCreditNames(
   state: StateT,
 ): ReadonlyArray<ArtistCreditNameStateT> {
   return state.field.names.field;
+}
+
+export function getArtistCreditNamesCtx(
+  stateCtx: CowContext<StateT>,
+): CowContext<ReadonlyArray<ArtistCreditNameStateT>> {
+  return stateCtx.get('field', 'names', 'field');
 }
 
 export function getArtist(
@@ -33,8 +41,22 @@ export function getCreditedName(
   return name.field.name.value || (artist?.name ?? '');
 }
 
+export function setCreditedName(
+  nameCtx: CowContext<ArtistCreditNameStateT>,
+  creditedName: string,
+): void {
+  nameCtx.set('field', 'name', 'value', creditedName);
+}
+
 export function getJoinPhrase(name: ArtistCreditNameStateT): string {
   return name.field.join_phrase.value;
+}
+
+export function setJoinPhrase(
+  nameCtx: CowContext<ArtistCreditNameStateT>,
+  joinPhrase: string,
+): void {
+  nameCtx.set('field', 'join_phrase', 'value', joinPhrase);
 }
 
 export function isNameRemoved(name: ArtistCreditNameStateT): boolean {
