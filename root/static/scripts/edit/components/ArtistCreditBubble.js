@@ -291,7 +291,7 @@ component _ArtistCreditBubble(
               artistCreditEditorHtmlId={state.htmlId}
               dispatch={dispatch}
               index={index}
-              key={name.key}
+              key={name.nameFieldId}
               name={name}
               showMoveButtons={allowNameMoveOrRemoval && !name.removed}
             />

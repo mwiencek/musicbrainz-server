@@ -116,7 +116,7 @@ function getEmptyArtistCreditNameState(
   htmlId: string,
   index: number,
 ): ArtistCreditNameStateT {
-  const key = uniqueId();
+  const nameFieldId = uniqueId();
   return {
     artist: createInitialAutocompleteState<ArtistT>({
       entityType: 'artist',
@@ -124,8 +124,8 @@ function getEmptyArtistCreditNameState(
     }),
     automaticJoinPhrase: true,
     joinPhrase: '',
-    key,
     name: '',
+    nameFieldId,
     removed: false,
   };
 }
@@ -173,8 +173,10 @@ export function reducer(
 
   // If this action is updating a specific AC name, retrieve its index.
   let nameIndex = -1;
-  if (action.key != null) {
-    nameIndex = names.findIndex(name => name.key === action.key);
+  if (action.nameFieldId != null) {
+    nameIndex = names.findIndex(
+      name => name.nameFieldId === action.nameFieldId,
+    );
     if (nameIndex < 0) {
       return state;
     }
@@ -226,7 +228,7 @@ export function reducer(
     }
     {type: 'edit-name', ...} as action => {
       // eslint-disable-next-line no-unused-vars
-      const {key, type, ...editData} = action;
+      const {nameFieldId, type, ...editData} = action;
 
       stateCtx.update('names', nameIndex, (nameCtx) => {
         if (editData.automaticJoinPhrase != null) {
@@ -394,7 +396,7 @@ function createInitialNamesState(
   }
 
   return names.map((name, index) => {
-    const key = uniqueId();
+    const nameFieldId = uniqueId();
     const artist = name.artist;
     let artistName = '';
     let selectedItem = null;
@@ -419,8 +421,8 @@ function createInitialNamesState(
       }),
       automaticJoinPhrase,
       joinPhrase: name.joinPhrase ?? '',
-      key,
       name: name.name || artistName,
+      nameFieldId,
       removed: false,
     };
   });
