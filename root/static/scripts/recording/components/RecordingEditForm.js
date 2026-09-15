@@ -404,8 +404,14 @@ component RecordingEditForm(
     dispatch({bubble: 'name', type: 'toggle-bubble'});
   }
 
-  const hasErrors = hasSubfieldErrors(state.form) ||
+  const hasLinkErrors =
     hasErrorsOnNewOrChangedLinks(state.externalLinksEditor.links);
+  const hasErrors =
+    hasSubfieldErrors(state.form, /* includePending = */ true) ||
+    hasLinkErrors;
+  const hasVisibleErrors =
+    hasSubfieldErrors(state.form, /* includePending = */ false) ||
+    hasLinkErrors;
 
   const handleSubmit = useFormSubmitHandler(hasErrors, dispatch);
 
@@ -521,7 +527,7 @@ component RecordingEditForm(
           field={state.form.field.edit_note}
           onChange={handleEditNoteChange}
         />
-        <EnterEdit form={state.form} />
+        <EnterEdit errorsExist={hasVisibleErrors} form={state.form} />
       </div>
 
       <div className="documentation">

@@ -261,8 +261,14 @@ component EventEditForm(
     dispatch({action, type: 'update-relationship-editor'});
   }, [dispatch]);
 
-  const hasErrors = hasSubfieldErrors(state.form) ||
+  const hasLinkErrors =
     hasErrorsOnNewOrChangedLinks(state.externalLinksEditor.links);
+  const hasErrors =
+    hasSubfieldErrors(state.form, /* includePending = */ true) ||
+    hasLinkErrors;
+  const hasVisibleErrors =
+    hasSubfieldErrors(state.form, /* includePending = */ false) ||
+    hasLinkErrors;
 
   const eventEntity: EventT = getSourceEntityData($c, 'event');
 
@@ -365,7 +371,7 @@ component EventEditForm(
         />
 
         <EnterEditNote field={state.form.field.edit_note} />
-        <EnterEdit form={state.form} />
+        <EnterEdit errorsExist={hasVisibleErrors} form={state.form} />
       </div>
 
       <div className="documentation">
