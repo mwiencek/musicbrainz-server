@@ -43,6 +43,7 @@ import {
   createCommonEntityEditFormState,
   getEditFormErrors,
   runCommonEntityEditFormActions,
+  updateEditNoteFieldErrors,
   updateRequiredNameFieldErrors,
 } from '../../edit/utility/forms.js';
 import isValidSetlist from '../../edit/utility/isValidSetlist.js';
@@ -86,6 +87,8 @@ function createInitialState({
   const formCtx = mutate(form);
   const nameFieldCtx = formCtx.get('field', 'name');
   updateRequiredNameFieldErrors(nameFieldCtx);
+  const editNoteFieldCtx = formCtx.get('field', 'edit_note');
+  updateEditNoteFieldErrors(editNoteFieldCtx);
 
   return {
     ...createCommonEntityEditFormState({$c, form}),
@@ -180,6 +183,15 @@ component EventEditForm(
     event: SyntheticEvent<HTMLTextAreaElement>,
   ) => {
     dispatch({setlist: event.currentTarget.value, type: 'set-setlist'});
+  }, [dispatch]);
+
+  const handleEditNoteChange = React.useCallback((
+    event: SyntheticEvent<HTMLTextAreaElement>,
+  ) => {
+    dispatch({
+      editNote: event.currentTarget.value,
+      type: 'update-edit-note',
+    });
   }, [dispatch]);
 
   const {hasErrors, hasVisibleErrors} = getEditFormErrors(state);
@@ -284,7 +296,11 @@ component EventEditForm(
           state={state.externalLinksEditor}
         />
 
-        <EnterEditNote field={state.form.field.edit_note} />
+        <EnterEditNote
+          controlled
+          field={state.form.field.edit_note}
+          onChange={handleEditNoteChange}
+        />
         <EnterEdit errorsExist={hasVisibleErrors} form={state.form} />
       </div>
 
