@@ -66,6 +66,7 @@ import {
   applyAllPendingErrors,
   hasSubfieldErrors,
 } from '../../edit/utility/subfieldErrors.js';
+import useChildDispatch from '../../edit/utility/useChildDispatch.js';
 import ExternalLinksEditorFieldset
   // eslint-disable-next-line @stylistic/max-len
   from '../../external-links-editor/components/ExternalLinksEditorFieldset.js';
@@ -360,19 +361,13 @@ component RecordingEditForm(
     createInitialState,
   );
 
-  const nameDispatch = React.useCallback((action: NameActionT) => {
-    dispatch({action, type: 'update-name'});
-  }, [dispatch]);
-
-  const artistCreditEditorDispatch = React.useCallback((
-    action: ArtistCreditActionT,
-  ) => {
-    dispatch({action, type: 'update-artist-credit'});
-  }, [dispatch]);
-
-  const isrcDispatch = React.useCallback((action: IsrcActionT) => {
-    dispatch({action, type: 'update-isrcs'});
-  }, [dispatch]);
+  const nameDispatch =
+    useChildDispatch<NameActionT, _>(dispatch, 'update-name');
+  const artistCreditEditorDispatch = useChildDispatch<
+    ArtistCreditActionT, _,
+  >(dispatch, 'update-artist-credit');
+  const isrcDispatch =
+    useChildDispatch<IsrcActionT, _>(dispatch, 'update-isrcs');
 
   const handleEditNoteChange = React.useCallback((
     event: SyntheticEvent<HTMLTextAreaElement>,

@@ -48,6 +48,7 @@ import {
   applyAllPendingErrors,
   hasSubfieldErrors,
 } from '../../edit/utility/subfieldErrors.js';
+import useChildDispatch from '../../edit/utility/useChildDispatch.js';
 import ExternalLinksEditorFieldset
   // eslint-disable-next-line @stylistic/max-len
   from '../../external-links-editor/components/ExternalLinksEditorFieldset.js';
@@ -232,9 +233,14 @@ component EventEditForm(
     createInitialState,
   );
 
-  const nameDispatch = React.useCallback((action: NameActionT) => {
-    dispatch({action, type: 'update-name'});
-  }, [dispatch]);
+  const nameDispatch =
+    useChildDispatch<NameActionT, _>(dispatch, 'update-name');
+  const dateRangeDispatch = useChildDispatch<
+    DateRangeFieldsetActionT, _,
+  >(dispatch, 'update-date-range');
+  const relationshipEditorDispatch = useChildDispatch<
+    RelationshipEditorActionT, _,
+  >(dispatch, 'update-relationship-editor');
 
   function handleTypeFocus() {
     dispatch({type: 'toggle-type-bubble'});
@@ -250,18 +256,6 @@ component EventEditForm(
     event: SyntheticEvent<HTMLTextAreaElement>,
   ) => {
     dispatch({setlist: event.currentTarget.value, type: 'set-setlist'});
-  }, [dispatch]);
-
-  const dispatchDateRange = React.useCallback((
-    action: DateRangeFieldsetActionT,
-  ) => {
-    dispatch({action, type: 'update-date-range'});
-  }, [dispatch]);
-
-  const relationshipEditorDispatch = React.useCallback((
-    action: RelationshipEditorActionT,
-  ) => {
-    dispatch({action, type: 'update-relationship-editor'});
   }, [dispatch]);
 
   const hasLinkErrors =
@@ -349,7 +343,7 @@ component EventEditForm(
         </fieldset>
 
         <DateRangeFieldset
-          dispatch={dispatchDateRange}
+          dispatch={dateRangeDispatch}
           field={state.form.field.period}
         >
           <FormRowText
