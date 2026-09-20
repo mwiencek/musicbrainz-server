@@ -52,11 +52,8 @@ import useChildDispatch from '../../edit/utility/useChildDispatch.js';
 import ExternalLinksEditorFieldset
   // eslint-disable-next-line @stylistic/max-len
   from '../../external-links-editor/components/ExternalLinksEditorFieldset.js';
-import RelationshipEditor
-  from '../../relationship-editor/components/RelationshipEditor.js';
-import type {
-  RelationshipEditorActionT,
-} from '../../relationship-editor/types/actions.js';
+import RelationshipEditorFieldset
+  from '../../relationship-editor/components/RelationshipEditorFieldset.js';
 
 /* eslint-disable ft-flow/sort-keys */
 type ActionT =
@@ -165,9 +162,6 @@ component EventEditForm(
   const dateRangeDispatch = useChildDispatch<
     DateRangeFieldsetActionT, _,
   >(dispatch, 'update-date-range');
-  const relationshipEditorDispatch = useChildDispatch<
-    RelationshipEditorActionT, _,
-  >(dispatch, 'update-relationship-editor');
 
   function handleTypeFocus() {
     dispatch({type: 'toggle-type-bubble'});
@@ -285,8 +279,8 @@ component EventEditForm(
           />
         </DateRangeFieldset>
 
-        <RelationshipEditor
-          dispatch={relationshipEditorDispatch}
+        <RelationshipEditorFieldset
+          dispatch={dispatch}
           formName={state.form.name}
           state={state.relationshipEditor}
         />
